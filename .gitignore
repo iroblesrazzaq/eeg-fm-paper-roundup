@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+data/*.sqlite
+outputs/**/pdfs/
+outputs/**/text/
+outputs/**/.DS_Store
+
+# If you keep monthly site artifacts tracked, do NOT ignore docs/
+# docs/

@@ -1,68 +1,54 @@
 # AGENTS.md
-# Repository instructions for Codex (development-time), NOT runtime LLM “agents”.
+# Instructions for Codex (development-time). Not runtime “agents”.
 
-## Project goal
-Implement a monthly pipeline that:
-1) queries arXiv for candidate EEG foundation-model-ish papers,
-2) triages candidates with an LLM using title+abstract,
-3) fetches PDFs only for triaged-in papers,
-4) extracts text deterministically,
-5) summarizes and writes a monthly digest (Markdown + JSON),
-6) stores state in SQLite for incremental runs.
+## Goal
+Implement SPEC.md using:
+- arXiv API (Atom feed)
+- Gemini via google-genai Python SDK
+- SQLite for state
+- deterministic HTML site output in docs/
 
-## Operating rules
-- Prefer simple, testable Python over clever abstractions.
-- Keep network access minimal:
-  - arXiv API calls are allowed.
-  - PDF downloads only for shortlisted papers.
-- Do not hardcode secrets. Read API keys from environment variables.
-- Every LLM call must return strict JSON validated by a schema.
-- If anything fails (PDF extraction, JSON parse), log and continue; never crash the whole run.
+## Key choices (do not deviate without updating SPEC.md)
+- LLM provider: Gemini (google-genai)
+- Publishing: GitHub Pages from /docs (static HTML, no-Jekyll)
 
-## Dev environment
-- Python: 3.11+
-- Package manager: uv (preferred) or pip
-- Main entrypoint: `python -m eegfm_digest.run --month YYYY-MM`
+## Environment variables
+- GEMINI_API_KEY (or GOOGLE_API_KEY)
+- GEMINI_MODEL_TRIAGE
+- GEMINI_MODEL_SUMMARY
 
-## Setup commands
-- Create venv + install:
-  - `python -m venv .venv && source .venv/bin/activate`
-  - `pip install -e .`
-- Run tests:
-  - `pytest -q`
-- Format/lint (if configured):
-  - `ruff check .`
-  - `ruff format .`
+## Implementation rules
+- Keep pipeline staged: fetch -> triage -> (pdf+extract) -> summarize -> render -> publish.
+- PDFs are downloaded ONLY after acceptance/borderline triage.
+- All LLM outputs must validate against JSON Schemas in /schemas.
+- If JSON invalid: retry once using prompts/repair_json.md; then log error and continue.
+- Do not commit PDFs by default (add to .gitignore).
 
-## Repository layout (expected)
-- `src/eegfm_digest/` — library code
-- `src/eegfm_digest/run.py` — CLI pipeline runner
-- `prompts/` — prompt templates (triage, summarize, repair)
-- `schemas/` — JSON schemas (triage.json, summary.json, digest.json)
-- `tests/` — unit + golden tests
-- `data/` — sqlite db
-- `outputs/YYYY-MM/` — run artifacts
+## Repo layout to create
+- src/eegfm_digest/
+  - run.py (CLI)
+  - config.py
+  - arxiv.py
+  - keywords.py
+  - db.py
+  - llm_gemini.py
+  - triage.py
+  - pdf.py
+  - summarize.py
+  - render.py
+  - site.py (HTML generation helpers)
+- prompts/
+- schemas/
+- docs/
+- tests/
+- data/
+- outputs/
 
-## Implementation priorities
-1) Correct arXiv fetching + month filtering + dedupe by base arXiv id.
-2) Robust JSON-schema validation for LLM outputs.
-3) Staged PDF download/extraction with caching.
-4) Deterministic digest rendering.
+## Commands
+- install: pip install -e .
+- run: python -m eegfm_digest.run --month YYYY-MM
+- tests: pytest -q
 
-## Testing expectations
-- Unit tests for:
-  - arXiv Atom parsing
-  - month window boundaries
-  - dedupe/version handling
-  - schema validation failure paths
-- Golden test:
-  - render digest from a fixed fixture set of summaries and compare to snapshot.
-
-## Git hygiene
-- Do not commit large PDFs by default. Store extracted text + metadata.
-- Commit `outputs/YYYY-MM/digest.md` and `digest.json`.
-- Use `.gitignore` for `outputs/**/pdfs/` unless explicitly requested.
-
-## Notes
-- arXiv API: `export.arxiv.org/api/query` (Atom).
-- Rate limit politely (sleep between requests).
+## Publishing
+- docs/.nojekyll must live inside docs/ (not repo root).
+- docs/index.html should be updated on each run to link to the newest month.
