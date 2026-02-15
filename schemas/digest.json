@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MonthlyDigest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["month", "stats", "top_picks", "sections"],
+  "properties": {
+    "month": { "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates", "accepted", "summarized"],
+      "properties": {
+        "candidates": { "type": "integer", "minimum": 0 },
+        "accepted": { "type": "integer", "minimum": 0 },
+        "summarized": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "top_picks": { "type": "array", "items": { "type": "string" }, "maxItems": 5 },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "paper_ids"],
+        "properties": {
+          "title": { "type": "string" },
+          "paper_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

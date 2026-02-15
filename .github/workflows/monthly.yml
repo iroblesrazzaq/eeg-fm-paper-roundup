@@ -1,0 +1,32 @@
+name: monthly-digest
+
+on:
+  schedule:
+    - cron: "0 10 1 * *"  # 10:00 UTC on day 1
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Run digest for previous month
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL_TRIAGE: ${{ vars.GEMINI_MODEL_TRIAGE }}
+          GEMINI_MODEL_SUMMARY: ${{ vars.GEMINI_MODEL_SUMMARY }}
+        run: python -m eegfm_digest.run
+      - name: Commit updated docs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add docs outputs data || true
+          git commit -m "Update monthly digest" || exit 0
+          git push

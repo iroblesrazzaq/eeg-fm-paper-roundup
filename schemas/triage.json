@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriageDecision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "arxiv_id_base",
+    "is_eeg_related",
+    "is_foundation_model_related",
+    "borderline",
+    "paper_type",
+    "confidence",
+    "reasons",
+    "suggested_digest_tags",
+    "decision"
+  ],
+  "properties": {
+    "arxiv_id_base": { "type": "string", "minLength": 3 },
+    "is_eeg_related": { "type": "boolean" },
+    "is_foundation_model_related": { "type": "boolean" },
+    "borderline": { "type": "boolean" },
+    "paper_type": {
+      "type": "string",
+      "enum": ["new_model", "benchmark", "survey", "method", "application", "other"]
+    },
+    "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "suggested_digest_tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 0,
+      "maxItems": 12
+    },
+    "decision": { "type": "string", "enum": ["accept", "reject", "borderline"] }
+  }
+}

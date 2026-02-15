@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PaperSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "arxiv_id_base",
+    "title",
+    "published_date",
+    "categories",
+    "paper_type",
+    "one_liner",
+    "unique_contribution",
+    "key_points",
+    "data_scale",
+    "method",
+    "evaluation",
+    "open_source",
+    "limitations",
+    "digest_tags",
+    "used_fulltext",
+    "notes"
+  ],
+  "properties": {
+    "arxiv_id_base": { "type": "string" },
+    "title": { "type": "string", "minLength": 3 },
+    "published_date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "categories": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "paper_type": {
+      "type": "string",
+      "enum": ["new_model", "benchmark", "survey", "method", "application", "other"]
+    },
+    "one_liner": { "type": "string", "minLength": 5, "maxLength": 300 },
+    "unique_contribution": { "type": "string", "minLength": 5, "maxLength": 400 },
+    "key_points": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 3 },
+      "minItems": 3,
+      "maxItems": 8
+    },
+    "data_scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["datasets", "subjects", "eeg_hours", "channels"],
+      "properties": {
+        "datasets": { "type": "array", "items": { "type": "string" } },
+        "subjects": { "type": ["number", "null"] },
+        "eeg_hours": { "type": ["number", "null"] },
+        "channels": { "type": ["number", "null"] }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architecture", "objective", "pretraining", "finetuning"],
+      "properties": {
+        "architecture": { "type": ["string", "null"] },
+        "objective": { "type": ["string", "null"] },
+        "pretraining": { "type": ["string", "null"] },
+        "finetuning": { "type": ["string", "null"] }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tasks", "benchmarks", "headline_results"],
+      "properties": {
+        "tasks": { "type": "array", "items": { "type": "string" } },
+        "benchmarks": { "type": "array", "items": { "type": "string" } },
+        "headline_results": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "open_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code_url", "weights_url", "license"],
+      "properties": {
+        "code_url": { "type": ["string", "null"] },
+        "weights_url": { "type": ["string", "null"] },
+        "license": { "type": ["string", "null"] }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 3 },
+      "minItems": 2,
+      "maxItems": 8
+    },
+    "digest_tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 3,
+      "maxItems": 15
+    },
+    "used_fulltext": { "type": "boolean" },
+    "notes": { "type": "string" }
+  }
+}
