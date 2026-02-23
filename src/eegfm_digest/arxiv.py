@@ -89,10 +89,16 @@ def fetch_query(
     rate_limit_seconds: float,
     page_size: int = 100,
     max_start: int = 5000,
+    connect_timeout_seconds: float = 10.0,
+    read_timeout_seconds: float = 60.0,
+    retries: int = 2,
+    retry_backoff_seconds: float = 2.0,
     client: httpx.Client | None = None,
 ) -> list[dict[str, Any]]:
     created_client = client is None
-    client = client or httpx.Client(timeout=30)
+    client = client or httpx.Client(
+        timeout=httpx.Timeout(connect=connect_timeout_seconds, read=read_timeout_seconds, write=30.0, pool=30.0)
+    )
     results: list[dict[str, Any]] = []
     try:
         start = 0
@@ -105,8 +111,20 @@ def fetch_query(
                 "sortBy": "submittedDate",
                 "sortOrder": "descending",
             }
-            resp = client.get(ARXIV_API_URL, params=params)
-            resp.raise_for_status()
+            attempt = 0
+            while True:
+                try:
+                    resp = client.get(ARXIV_API_URL, params=params)
+                    resp.raise_for_status()
+                    break
+                except (httpx.ReadTimeout, httpx.TransportError) as exc:
+                    attempt += 1
+                    if attempt > retries:
+                        raise RuntimeError(
+                            f"arXiv request failed after {attempt} attempts "
+                            f"(start={start}, max_results={chunk})"
+                        ) from exc
+                    time.sleep(retry_backoff_seconds * (2 ** (attempt - 1)))
             root = ET.fromstring(resp.text)
             entries = root.findall("atom:entry", ATOM_NS)
             parsed = [parse_entry(e) for e in entries]
@@ -121,9 +139,31 @@ def fetch_query(
     return results
 
 
-def fetch_month_candidates(max_candidates: int, month: str, rate_limit_seconds: float) -> list[dict[str, Any]]:
-    combined = fetch_query(QUERY_A, max_candidates, rate_limit_seconds) + fetch_query(
-        QUERY_B, max_candidates, rate_limit_seconds
+def fetch_month_candidates(
+    max_candidates: int,
+    month: str,
+    rate_limit_seconds: float,
+    connect_timeout_seconds: float = 10.0,
+    read_timeout_seconds: float = 60.0,
+    retries: int = 2,
+    retry_backoff_seconds: float = 2.0,
+) -> list[dict[str, Any]]:
+    combined = fetch_query(
+        QUERY_A,
+        max_candidates,
+        rate_limit_seconds,
+        connect_timeout_seconds=connect_timeout_seconds,
+        read_timeout_seconds=read_timeout_seconds,
+        retries=retries,
+        retry_backoff_seconds=retry_backoff_seconds,
+    ) + fetch_query(
+        QUERY_B,
+        max_candidates,
+        rate_limit_seconds,
+        connect_timeout_seconds=connect_timeout_seconds,
+        read_timeout_seconds=read_timeout_seconds,
+        retries=retries,
+        retry_backoff_seconds=retry_backoff_seconds,
     )
     filtered = [p for p in combined if category_match(p["categories"]) and in_month(p["published"], month)]
     return dedupe_latest(filtered)

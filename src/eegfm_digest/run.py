@@ -23,6 +23,7 @@ def main() -> None:
     parser.add_argument("--max-accepted", type=int, default=None)
     parser.add_argument("--include-borderline", action="store_true")
     parser.add_argument("--no-pdf", action="store_true")
+    parser.add_argument("--no-site", action="store_true")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
@@ -34,7 +35,7 @@ def main() -> None:
     if args.include_borderline:
         cfg = replace(cfg, include_borderline=True)
 
-    run_month(cfg, args.month, no_pdf=args.no_pdf, force=args.force)
+    run_month(cfg, args.month, no_pdf=args.no_pdf, no_site=args.no_site, force=args.force)
 
 
 if __name__ == "__main__":

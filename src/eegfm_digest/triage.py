@@ -24,17 +24,13 @@ def validate_json(data: dict[str, Any], schema: dict[str, Any]) -> None:
         raise SchemaValidationError(str(exc)) from exc
 
 
-def apply_decision_policy(decision: dict[str, Any]) -> dict[str, Any]:
-    conf = float(decision.get("confidence", 0.0))
-    if decision.get("is_eeg_related") and decision.get("is_foundation_model_related") and conf >= 0.6:
-        decision["decision"] = "accept"
-        decision["borderline"] = False
-    elif conf >= 0.35:
-        decision["decision"] = "borderline"
-        decision["borderline"] = True
-    else:
-        decision["decision"] = "reject"
-    return decision
+def _persisted_triage(arxiv_id_base: str, data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "arxiv_id_base": arxiv_id_base,
+        "decision": data["decision"],
+        "confidence": float(data["confidence"]),
+        "reasons": list(data["reasons"]),
+    }
 
 
 def triage_paper(
@@ -44,22 +40,14 @@ def triage_paper(
     repair_template: str,
     schema: dict[str, Any],
 ) -> dict[str, Any]:
-    input_payload = {
-        "arxiv_id_base": paper["arxiv_id_base"],
-        "title": paper["title"],
-        "authors": paper["authors"],
-        "categories": paper["categories"],
-        "published_date": paper["published"][:10],
-        "abstract": paper["summary"],
-        "links": paper["links"],
-    }
-    prompt = prompt_template.replace("{{INPUT_JSON}}", json.dumps(input_payload, ensure_ascii=False))
+    prompt = prompt_template.replace("{{TITLE}}", paper["title"]).replace(
+        "{{ABSTRACT}}", paper["summary"]
+    )
     raw = llm.generate(prompt, schema=schema)
     try:
         data = parse_json_text(raw)
-        data = apply_decision_policy(data)
         validate_json(data, schema)
-        return data
+        return _persisted_triage(paper["arxiv_id_base"], data)
     except Exception:
         repair_prompt = (
             repair_template.replace("{{SCHEMA_JSON}}", json.dumps(schema, ensure_ascii=False))
@@ -68,18 +56,12 @@ def triage_paper(
         try:
             repaired = llm.generate(repair_prompt, schema=schema)
             data = parse_json_text(repaired)
-            data = apply_decision_policy(data)
             validate_json(data, schema)
-            return data
+            return _persisted_triage(paper["arxiv_id_base"], data)
         except Exception:
             return {
                 "arxiv_id_base": paper["arxiv_id_base"],
-                "is_eeg_related": False,
-                "is_foundation_model_related": False,
-                "borderline": False,
-                "paper_type": "other",
-                "confidence": 0.0,
-                "reasons": ["triage_json_error"],
-                "suggested_digest_tags": [],
                 "decision": "reject",
+                "confidence": 0.0,
+                "reasons": ["triage_json_error", "insufficient_valid_output"],
             }

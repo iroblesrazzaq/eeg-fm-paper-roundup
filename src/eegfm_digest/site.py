@@ -10,7 +10,6 @@ def _card(summary: dict[str, Any], meta: dict[str, Any]) -> str:
     title = html.escape(summary["title"])
     abs_url = html.escape(meta.get("links", {}).get("abs", "#"))
     authors = ", ".join(meta.get("authors", []))
-    tags = " ".join(f"<span class='tag'>{html.escape(t)}</span>" for t in summary.get("digest_tags", []))
     os_info = summary.get("open_source", {})
     code_link = (
         f"<a href='{html.escape(os_info['code_url'])}'>code</a>" if os_info.get("code_url") else ""
@@ -24,7 +23,6 @@ def _card(summary: dict[str, Any], meta: dict[str, Any]) -> str:
       <div class='meta'>{html.escape(summary['published_date'])} · {html.escape(summary['paper_type'])} · {html.escape(authors)}</div>
       <p><strong>One-liner:</strong> {html.escape(summary['one_liner'])}</p>
       <p><strong>Unique contribution:</strong> {html.escape(summary['unique_contribution'])}</p>
-      <p>{tags}</p>
       <p>{code_link} {weights_link}</p>
     </article>
     """

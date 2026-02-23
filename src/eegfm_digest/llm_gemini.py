@@ -51,6 +51,21 @@ class GeminiClient:
         )
         return _extract_text(resp).strip()
 
+    def count_tokens(self, content: str) -> int:
+        resp = self._client.models.count_tokens(
+            model=self.config.model,
+            contents=content,
+        )
+        for key in ("total_tokens", "token_count", "total_token_count"):
+            value = getattr(resp, key, None)
+            if value is not None:
+                return int(value)
+        if isinstance(resp, dict):
+            for key in ("total_tokens", "token_count", "total_token_count"):
+                if key in resp:
+                    return int(resp[key])
+        raise RuntimeError("Unable to read token count from Gemini count_tokens response")
+
 
 def load_api_key() -> str:
     key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")

@@ -1,7 +1,7 @@
 You are writing a deep structured digest summary for an EEG-FM paper.
 
 Rules:
-- Use ONLY the provided metadata/abstract/extracted text.
+- Use ONLY the provided metadata/abstract/text fields (`fulltext` or `fulltext_slices`).
 - Do NOT invent facts. If unknown, set null/unknown.
 - Keep it concise and digest-oriented.
 

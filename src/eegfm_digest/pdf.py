@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -49,3 +50,118 @@ def bounded_text(text: str, head_chars: int, tail_chars: int) -> str:
     if len(text) <= head_chars + tail_chars:
         return text
     return text[:head_chars] + "\n\n[...TRUNCATED...]\n\n" + text[-tail_chars:]
+
+
+_HEADING_PATTERNS: dict[str, tuple[str, ...]] = {
+    "abstract": (r"^\s*abstract\s*$",),
+    "introduction": (
+        r"^\s*introduction\s*$",
+        r"^\s*\d+(\.\d+)*\s+introduction\s*$",
+    ),
+    "methods": (
+        r"^\s*(methods|methodology|approach|materials and methods)\s*$",
+        r"^\s*\d+(\.\d+)*\s+(methods|methodology|approach)\s*$",
+    ),
+    "results": (
+        r"^\s*(results|experiments|evaluation)\s*$",
+        r"^\s*\d+(\.\d+)*\s+(results|experiments|evaluation)\s*$",
+    ),
+    "conclusion": (
+        r"^\s*(conclusion|conclusions|discussion|concluding remarks)\s*$",
+        r"^\s*\d+(\.\d+)*\s+(conclusion|conclusions|discussion)\s*$",
+    ),
+}
+
+
+def _normalize_extracted_text(text: str) -> str:
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"[ \t]+\n", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text
+
+
+def _matches_heading(section: str, line: str) -> bool:
+    normalized = line.strip().lower()
+    for pattern in _HEADING_PATTERNS[section]:
+        if re.match(pattern, normalized, flags=re.IGNORECASE):
+            return True
+    return False
+
+
+def _find_headings(lines: list[str]) -> dict[str, int]:
+    headings: dict[str, int] = {}
+    for idx, raw in enumerate(lines):
+        line = raw.strip()
+        if not line or len(line) > 120:
+            continue
+        for section in ("abstract", "introduction", "methods", "results", "conclusion"):
+            if section not in headings and _matches_heading(section, line):
+                headings[section] = idx
+                break
+    return headings
+
+
+def _extract_between(
+    lines: list[str],
+    headings: dict[str, int],
+    start_key: str,
+    end_keys: tuple[str, ...],
+    max_chars: int,
+) -> str:
+    if start_key not in headings:
+        return ""
+    start = headings[start_key] + 1
+    end_candidates = [headings[k] for k in end_keys if k in headings and headings[k] > headings[start_key]]
+    end = min(end_candidates) if end_candidates else len(lines)
+    chunk = "\n".join(lines[start:end]).strip()
+    if len(chunk) > max_chars:
+        chunk = chunk[:max_chars]
+    return chunk
+
+
+def slice_paper_text(text: str, excerpt_chars: int = 18_000, tail_chars: int = 0) -> dict[str, str]:
+    normalized = _normalize_extracted_text(text)
+    lines = normalized.splitlines()
+    headings = _find_headings(lines)
+    excerpt = normalized[:excerpt_chars]
+    if tail_chars > 0 and len(normalized) > excerpt_chars + tail_chars:
+        excerpt = excerpt + "\n\n[...TAIL_EXCERPT...]\n\n" + normalized[-tail_chars:]
+
+    return {
+        "abstract": _extract_between(
+            lines,
+            headings,
+            "abstract",
+            ("introduction", "methods", "results", "conclusion"),
+            max_chars=5_000,
+        ),
+        "introduction": _extract_between(
+            lines,
+            headings,
+            "introduction",
+            ("methods", "results", "conclusion"),
+            max_chars=9_000,
+        ),
+        "methods": _extract_between(
+            lines,
+            headings,
+            "methods",
+            ("results", "conclusion"),
+            max_chars=12_000,
+        ),
+        "results": _extract_between(
+            lines,
+            headings,
+            "results",
+            ("conclusion",),
+            max_chars=12_000,
+        ),
+        "conclusion": _extract_between(
+            lines,
+            headings,
+            "conclusion",
+            (),
+            max_chars=7_000,
+        ),
+        "excerpt": excerpt.strip(),
+    }

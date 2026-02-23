@@ -7,32 +7,100 @@ from .llm_gemini import GeminiClient, parse_json_text
 from .triage import validate_json
 
 
+def _summary_triage_payload(triage: dict[str, Any]) -> dict[str, Any]:
+    reasons = triage.get("reasons", [])
+    if not isinstance(reasons, list):
+        reasons = [str(reasons)]
+    return {
+        "decision": triage.get("decision", "reject"),
+        "confidence": float(triage.get("confidence", 0.0)),
+        "reasons": reasons,
+    }
+
+
+def _base_payload(paper: dict[str, Any], triage: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "arxiv_id_base": paper["arxiv_id_base"],
+        "title": paper["title"],
+        "published_date": paper["published"][:10],
+        "categories": paper["categories"],
+        "abstract": paper["summary"],
+        "triage": _summary_triage_payload(triage),
+    }
+
+
+def _render_prompt(prompt_template: str, payload: dict[str, Any]) -> str:
+    return prompt_template.replace("{{INPUT_JSON}}", json.dumps(payload, ensure_ascii=False))
+
+
+def _count_tokens_or_none(llm: GeminiClient, prompt: str) -> int | None:
+    count_fn = getattr(llm, "count_tokens", None)
+    if not callable(count_fn):
+        return None
+    try:
+        return int(count_fn(prompt))
+    except Exception:
+        return None
+
+
+def _select_payload(
+    paper: dict[str, Any],
+    triage: dict[str, Any],
+    raw_fulltext: str,
+    fulltext_slices: dict[str, str],
+    prompt_template: str,
+    llm: GeminiClient,
+    max_input_tokens: int,
+) -> tuple[dict[str, Any], str]:
+    base = _base_payload(paper, triage)
+    if not raw_fulltext.strip():
+        return {**base, "fulltext_slices": fulltext_slices}, "input_mode=fulltext_slices;reason=missing_fulltext"
+
+    payload_fulltext = {**base, "fulltext": raw_fulltext}
+    prompt_fulltext = _render_prompt(prompt_template, payload_fulltext)
+    token_count = _count_tokens_or_none(llm, prompt_fulltext)
+
+    if token_count is not None and token_count <= max_input_tokens:
+        return payload_fulltext, f"input_mode=fulltext;prompt_tokens={token_count}"
+
+    if token_count is None:
+        return {**base, "fulltext_slices": fulltext_slices}, "input_mode=fulltext_slices;reason=count_tokens_failed"
+
+    return {
+        **base,
+        "fulltext_slices": fulltext_slices,
+    }, f"input_mode=fulltext_slices;reason=fulltext_over_limit;prompt_tokens={token_count};max_tokens={max_input_tokens}"
+
+
 def summarize_paper(
     paper: dict[str, Any],
     triage: dict[str, Any],
-    text_window: str,
+    raw_fulltext: str,
+    fulltext_slices: dict[str, str],
     used_fulltext: bool,
     notes: str,
     llm: GeminiClient,
     prompt_template: str,
     repair_template: str,
     schema: dict[str, Any],
+    max_input_tokens: int,
 ) -> dict[str, Any]:
-    payload = {
-        "arxiv_id_base": paper["arxiv_id_base"],
-        "title": paper["title"],
-        "published_date": paper["published"][:10],
-        "categories": paper["categories"],
-        "abstract": paper["summary"],
-        "triage": triage,
-        "fulltext": text_window,
-    }
-    prompt = prompt_template.replace("{{INPUT_JSON}}", json.dumps(payload, ensure_ascii=False))
+    payload, mode_notes = _select_payload(
+        paper=paper,
+        triage=triage,
+        raw_fulltext=raw_fulltext,
+        fulltext_slices=fulltext_slices,
+        prompt_template=prompt_template,
+        llm=llm,
+        max_input_tokens=max_input_tokens,
+    )
+    merged_notes = f"{notes};{mode_notes}" if notes else mode_notes
+    prompt = _render_prompt(prompt_template, payload)
     raw = llm.generate(prompt, schema=schema)
     try:
         data = parse_json_text(raw)
         data["used_fulltext"] = used_fulltext
-        data["notes"] = notes
+        data["notes"] = merged_notes
         validate_json(data, schema)
         return data
     except Exception:
@@ -44,7 +112,7 @@ def summarize_paper(
             repaired = llm.generate(repair_prompt, schema=schema)
             data = parse_json_text(repaired)
             data["used_fulltext"] = used_fulltext
-            data["notes"] = notes
+            data["notes"] = merged_notes
             validate_json(data, schema)
             return data
         except Exception:
@@ -54,7 +122,7 @@ def summarize_paper(
                 "title": paper["title"],
                 "published_date": paper["published"][:10],
                 "categories": paper["categories"],
-                "paper_type": triage.get("paper_type", "other"),
+                "paper_type": "other",
                 "one_liner": "Summary unavailable due to JSON validation failure.",
                 "unique_contribution": "unknown",
                 "key_points": ["unknown", "unknown", "unknown"],
@@ -68,7 +136,6 @@ def summarize_paper(
                 "evaluation": {"tasks": [], "benchmarks": [], "headline_results": []},
                 "open_source": {"code_url": None, "weights_url": None, "license": None},
                 "limitations": ["unknown", "summary_json_error"],
-                "digest_tags": triage.get("suggested_digest_tags", [])[:15] or ["unknown", "eeg", "foundation-model"],
                 "used_fulltext": used_fulltext,
-                "notes": f"{notes}; summary_json_error",
+                "notes": f"{merged_notes};summary_json_error",
             }
