@@ -6,9 +6,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .keywords import QUERY_A, QUERY_B
-
-
 _SHORT_BLURB = (
     "This digest serves as a monthly update on the current EEG foundation model literature on arXiv. "
     "We filter with arXiv title and abstract keywords, and a triage LLM to decide on papers that qualify. "
@@ -19,6 +16,10 @@ _SHORT_BLURB = (
 _PROCESS_DETAILS_PARAGRAPHS = [
     "This digest serves as a monthly update on the current EEG foundation model literature.",
     "I built it so I can keep up to date with the latest EEG FM papers.",
+    (
+        "First we call the arXiv API to retrieve papers with EEG-FM-related terms "
+        "in their title and abstract."
+    ),
     (
         "Then, we use an LLM on the title and abstract to triage all papers returned "
         "by the arXiv search. The model returns a decision (accept, reject, borderline), "
@@ -259,11 +260,7 @@ def render_process_page() -> str:
 <link rel='stylesheet' href='../assets/style.css'></head><body>
 {nav}
 <main class='container process-page'>
-<section class='hero-banner process-hero'>
-<p class='hero-kicker'>Pipeline Blueprint</p>
-<h1>How This Digest Works</h1>
-<p class='sub'>Query design, triage policy, and summary prompts used for monthly generation.</p>
-</section>
+<h1>About This Digest</h1>
 <section class='process-content'>
 {paragraphs}
 <h2>arXiv Retrieval Keywords</h2>
@@ -283,10 +280,6 @@ def render_process_page() -> str:
 {_keyword_list_html(_FM_KEYWORDS_SET_B)}
 </section>
 </div>
-<p><strong>Query A</strong></p>
-<pre class='prompt-block compact-block'>{html.escape(QUERY_A)}</pre>
-<p><strong>Query B</strong></p>
-<pre class='prompt-block compact-block'>{html.escape(QUERY_B)}</pre>
 </section>
 <h2>LLM Prompts</h2>
 <p>These are the full prompts used for each stage.</p>
@@ -346,30 +339,17 @@ def render_month_page(
 
 
 def render_home_page(months: list[str]) -> str:
-    latest = months[0] if months else ""
-    latest_link = f"digest/{latest}/index.html" if latest else "#"
     fallback_months = html.escape(json.dumps(months, ensure_ascii=False))
     nav = _nav_html("index.html", "explore/index.html", "process/index.html", "home")
-    links = "\n".join(f"<li><a href='digest/{m}/index.html'>{m}</a></li>" for m in months)
-    latest_label = html.escape(_month_label(latest)) if latest else "None"
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><title>EEG-FM Digest</title>
 <link rel='stylesheet' href='assets/style.css'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='home' data-month='' data-manifest-json='data/months.json' data-fallback-months='{fallback_months}'>
-<section class='hero-banner home-hero'>
-<p class='hero-kicker'>Monthly Brief</p>
-<h1>EEG Foundation Model Digest</h1>
-<p class='sub'>Track new EEG foundation model papers without sifting manually through arXiv.</p>
-</section>
+<p class='sub home-intro'>Track monthly EEG foundation model papers from arXiv with LLM triage and summaries.</p>
 {_about_digest_block("process/index.html", include_process_cta=False)}
-<p class='sub'>Latest month: <a href='{latest_link}'>{latest_label}</a></p>
 <section id='home-controls' class='controls'></section>
 <section id='home-results'></section>
-<details class='archive-fallback'>
-<summary>Archive (fallback links)</summary>
-<ul>{links}</ul>
-</details>
 </main>
 <script src='assets/site.js'></script>
 </body></html>
