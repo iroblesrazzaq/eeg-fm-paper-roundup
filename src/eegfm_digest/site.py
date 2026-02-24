@@ -13,25 +13,28 @@ _SHORT_BLURB = (
     "I manually choose the featured paper of the month."
 )
 
-_PROCESS_DETAILS_PARAGRAPHS = [
-    "This digest serves as a monthly update on the current EEG foundation model literature.",
-    "I built it so I can keep up to date with the latest EEG FM papers.",
+_PROCESS_DETAILS_INTRO = (
+    "This digest serves as a monthly update on the current EEG foundation model literature. "
+    "I built it so I can keep up to date with the latest EEG FM papers, mostly using Codex 5.3. "
+    "The process is as follows:"
+)
+
+_PROCESS_DETAILS_STEPS = [
+    "First we call the arXiv API to retrieve papers with EEG-FM-related terms in their title and abstract.",
     (
-        "First we call the arXiv API to retrieve papers with EEG-FM-related terms "
-        "in their title and abstract."
+        "Then, we use an LLM on the title and abstract to triage all papers returned by the arXiv search. "
+        "The model returns a decision (accept, reject, borderline), its confidence, and 2-4 reasons "
+        "for its decision."
     ),
     (
-        "Then, we use an LLM on the title and abstract to triage all papers returned "
-        "by the arXiv search. The model returns a decision (accept, reject, borderline), "
-        "its confidence, and 2-4 reasons for its decision."
+        "Next, for all models accepted by the triage LLM, we download the pdf, extract text with PyMuPDF, "
+        "and run a summary LLM where we extract a summary, bullet points, unique contribution, and tags."
     ),
-    (
-        "Next, for all models accepted by the triage LLM, we download the pdf, "
-        "extract text with PyMuPDF, and run a summary LLM where we extract a summary, "
-        "bullet points, unique contribution, and tags."
-    ),
-    "All triage and summary LLM calls through February 2026 use arcee-ai/trinity-large-preview:free.",
 ]
+
+_PROCESS_DETAILS_FOOTER = (
+    "All triage and summary LLM calls through February 2026 use arcee-ai/trinity-large-preview:free."
+)
 
 
 _EEG_KEYWORDS = [
@@ -251,7 +254,7 @@ def _nav_html(
 
 
 def render_process_page() -> str:
-    paragraphs = "\n".join(f"<p>{html.escape(text)}</p>" for text in _PROCESS_DETAILS_PARAGRAPHS)
+    step_items = "".join(f"<li>{html.escape(text)}</li>" for text in _PROCESS_DETAILS_STEPS)
     triage_prompt = html.escape(_load_prompt_text(Path("prompts/triage.md")))
     summary_prompt = html.escape(_load_prompt_text(Path("prompts/summarize.md")))
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "process")
@@ -262,7 +265,9 @@ def render_process_page() -> str:
 <main class='container process-page'>
 <h1>About This Digest</h1>
 <section class='process-content'>
-{paragraphs}
+<p>{html.escape(_PROCESS_DETAILS_INTRO)}</p>
+<ul>{step_items}</ul>
+<p>{html.escape(_PROCESS_DETAILS_FOOTER)}</p>
 <h2>arXiv Retrieval Keywords</h2>
 <section class='prompt-details keyword-details'>
 <p class='small'>Matching requires one EEG term plus one FM term set in title/abstract.</p>
@@ -345,7 +350,6 @@ def render_home_page(months: list[str]) -> str:
 <link rel='stylesheet' href='assets/style.css'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='home' data-month='' data-manifest-json='data/months.json' data-fallback-months='{fallback_months}'>
-<p class='sub home-intro'>Track monthly EEG foundation model papers from arXiv with LLM triage and summaries.</p>
 {_about_digest_block("process/index.html", include_process_cta=False)}
 <section id='home-controls' class='controls'></section>
 <section id='home-results'></section>

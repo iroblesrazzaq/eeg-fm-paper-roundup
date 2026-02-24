@@ -649,13 +649,19 @@ function renderResults(app, state) {
     meta.textContent = `Showing ${filtered.length} of ${baseCount} accepted papers for ${monthDisplayLabel(state.month)}.`;
   } else {
     const scopeLabel = state.selectedMonth === "all" ? "across all months" : `for ${monthDisplayLabel(state.selectedMonth)}`;
-    meta.textContent = `Showing ${filtered.length} of ${baseCount} accepted papers ${scopeLabel}.`;
+    const loadingMeta =
+      state.loading && state.loading.active
+        ? ` Loading ${state.loading.loaded}/${state.loading.total} month digests...`
+        : "";
+    meta.textContent = `Showing ${filtered.length} of ${baseCount} accepted papers ${scopeLabel}.${loadingMeta}`;
   }
 
   if (!filtered.length) {
     const monthKey = state.view === "month" ? state.month : state.selectedMonth;
     const noFilters = !state.query && !hasTagFilters(state);
-    if (monthKey === "all" && noFilters) {
+    if (state.view === "explore" && state.loading && state.loading.active && monthKey === "all" && noFilters) {
+      results.innerHTML = "<p class='empty-state'>Loading accepted papers...</p>";
+    } else if (monthKey === "all" && noFilters) {
       results.innerHTML = "<p class='empty-state'>No accepted papers are available for the selected month set.</p>";
     } else if (monthKey !== "all" && noFilters) {
       results.innerHTML = `<p class="empty-state">${esc(monthEmptyMessage(monthKey, state.monthStats[monthKey]))}</p>`;
@@ -734,6 +740,57 @@ function renderHome(app, state) {
   results.innerHTML = yearBlocks;
 }
 
+async function loadExploreMonthsLazy(app, state, monthRows, view) {
+  const rows = Array.isArray(monthRows) ? [...monthRows] : [];
+  const concurrency = Math.min(3, Math.max(1, rows.length));
+  if (!rows.length) {
+    state.loading.active = false;
+    renderResults(app, state);
+    return;
+  }
+
+  let refreshedTagControls = false;
+  const refresh = () => {
+    renderResults(app, state);
+  };
+
+  async function worker() {
+    while (rows.length) {
+      const item = rows.shift();
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const monthKey = String(item.month || "");
+      let payload = parseMonthPayload({}, monthKey);
+      try {
+        const raw = await fetchJson(resolveMonthJsonPath(item.json_path, view));
+        payload = parseMonthPayload(raw, monthKey);
+      } catch (_err) {
+        payload = parseMonthPayload({}, monthKey);
+        state.loading.failed += 1;
+      }
+      if (monthKey) {
+        state.monthStats[monthKey] = payload.stats;
+      }
+      if (payload.papers.length) {
+        state.papers.push(...payload.papers);
+      }
+      state.loading.loaded += 1;
+      if (!refreshedTagControls && state.papers.length > 0) {
+        refreshedTagControls = true;
+        renderExploreControls(app, state);
+      }
+      refresh();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
+  state.loading.active = false;
+  renderExploreControls(app, state);
+  renderResults(app, state);
+}
+
 async function setupDigestApp() {
   const app = document.getElementById("digest-app");
   if (!app) {
@@ -763,6 +820,12 @@ async function setupDigestApp() {
   }
 
   const monthStats = {};
+  for (const item of manifest.months) {
+    if (item && typeof item === "object" && item.month) {
+      monthStats[item.month] = normalizeStats(item.stats, []);
+    }
+  }
+
   const papers = [];
   if (view === "month") {
     let monthPayload = parseMonthPayload({}, month);
@@ -776,19 +839,6 @@ async function setupDigestApp() {
     }
     monthStats[monthPayload.month || month] = monthPayload.stats;
     papers.push(...monthPayload.papers);
-  } else {
-    for (const item of manifest.months) {
-      const monthKey = item.month;
-      let payload = parseMonthPayload({}, monthKey);
-      try {
-        const raw = await fetchJson(resolveMonthJsonPath(item.json_path, view));
-        payload = parseMonthPayload(raw, monthKey);
-      } catch (_err) {
-        payload = parseMonthPayload({}, monthKey);
-      }
-      monthStats[monthKey] = payload.stats;
-      papers.push(...payload.papers);
-    }
   }
 
   const state = {
@@ -802,14 +852,25 @@ async function setupDigestApp() {
     sortBy: "published_desc",
     selectedMonth: view === "month" ? month : "all",
     selectedTags: Object.fromEntries(TAG_ORDER.map((category) => [category, new Set()])),
+    loading:
+      view === "month"
+        ? null
+        : {
+            active: true,
+            total: manifest.months.length,
+            loaded: 0,
+            failed: 0,
+          },
   };
 
   if (state.view === "month") {
     renderMonthControls(app, state);
+    renderResults(app, state);
   } else {
     renderExploreControls(app, state);
+    renderResults(app, state);
+    void loadExploreMonthsLazy(app, state, manifest.months, view);
   }
-  renderResults(app, state);
   return true;
 }
 
