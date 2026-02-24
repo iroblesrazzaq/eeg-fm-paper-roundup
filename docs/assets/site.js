@@ -458,10 +458,10 @@ function renderPaperCard(paper, view) {
   const weightsUrl = String(openSource.weights_url || "").trim();
   const links = [];
   if (codeUrl) {
-    links.push(`<a href="${esc(codeUrl)}">code</a>`);
+    links.push(`<a href="${esc(codeUrl)}">Code Here</a>`);
   }
   if (weightsUrl) {
-    links.push(`<a href="${esc(weightsUrl)}">weights</a>`);
+    links.push(`<a href="${esc(weightsUrl)}">Model Weights</a>`);
   }
   const linksHtml = links.length ? `<p class="links">${links.join(" ")}</p>` : "";
 

@@ -74,6 +74,16 @@ a:hover {
   letter-spacing: 0.01em;
 }
 
+.site-title-link {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-title-link:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+
 .site-nav {
   display: flex;
   align-items: center;
@@ -609,6 +619,15 @@ button:hover {
 
 .keyword-grid section p {
   margin-bottom: 5px;
+}
+
+.keyword-grid ul {
+  margin: 4px 0 0 0;
+  padding-left: 18px;
+}
+
+.keyword-grid li {
+  margin: 2px 0;
 }
 
 .keyword-grid code,

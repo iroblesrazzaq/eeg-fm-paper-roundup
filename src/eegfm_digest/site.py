@@ -229,7 +229,7 @@ def _nav_html(
     tabs = [
         ("home", "Monthly Digest", home_href),
         ("explore", "Explore", explore_href),
-        ("process", "Process", process_href),
+        ("process", "About", process_href),
     ]
     links = "".join(
         (
@@ -242,7 +242,7 @@ def _nav_html(
         "<header class='site-shell'>"
         "<div class='site-shell-inner'>"
         "<div class='site-brand'>"
-        "<p class='site-title'>EEG Foundation Model Digest</p>"
+        f"<p class='site-title'><a class='site-title-link' href='{html.escape(home_href)}'>EEG Foundation Model Digest</a></p>"
         "</div>"
         f"<nav class='site-nav'>{links}</nav>"
         "</div>"
@@ -256,7 +256,7 @@ def render_process_page() -> str:
     summary_prompt = html.escape(_load_prompt_text(Path("prompts/summarize.md")))
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "process")
     return f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>Digest Process</title>
+<html><head><meta charset='utf-8'><title>About</title>
 <link rel='stylesheet' href='../assets/style.css'></head><body>
 {nav}
 <main class='container process-page'>
@@ -359,7 +359,7 @@ def render_explore_page(months: list[str]) -> str:
     fallback_months = html.escape(json.dumps(months, ensure_ascii=False))
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "explore")
     return f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>Explore EEG-FM Digest</title>
+<html><head><meta charset='utf-8'><title>Search</title>
 <link rel='stylesheet' href='../assets/style.css'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='explore' data-month='' data-manifest-json='../data/months.json' data-fallback-months='{fallback_months}'>
