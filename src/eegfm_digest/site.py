@@ -6,6 +6,54 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .keywords import QUERY_A, QUERY_B
+
+
+_SHORT_BLURB = (
+    "This digest serves as a monthly update on the current EEG foundation model literature on arXiv. "
+    "We filter with arXiv title and abstract keywords, and a triage LLM to decide on papers that qualify. "
+    "Then, we generate a summary of the entire paper with an LLM. "
+    "I manually choose the featured paper of the month."
+)
+
+_PROCESS_DETAILS_PARAGRAPHS = [
+    "This digest serves as a monthly update on the current EEG foundation model literature.",
+    "I built it so I can keep up to date with the latest EEG FM papers.",
+    (
+        "Then, we use an LLM on the title and abstract to triage all papers returned "
+        "by the arXiv search. The model returns a decision (accept, reject, borderline), "
+        "its confidence, and 2-4 reasons for its decision."
+    ),
+    (
+        "Next, for all models accepted by the triage LLM, we download the pdf, "
+        "extract text with PyMuPDF, and run a summary LLM where we extract a summary, "
+        "bullet points, unique contribution, and tags."
+    ),
+    "All triage and summary LLM calls through February 2026 use arcee-ai/trinity-large-preview:free.",
+]
+
+
+_EEG_KEYWORDS = [
+    "eeg",
+    "electroencephalograph*",
+    "brainwave*",
+]
+
+_FM_KEYWORDS_SET_A = [
+    '"foundation model"',
+    "pretrain",
+    "pretrained",
+    '"self-supervised"',
+    '"self supervised"',
+]
+
+_FM_KEYWORDS_SET_B = [
+    '"representation learning"',
+    "masked",
+    "transfer",
+    "generaliz*",
+]
+
 
 def _safe_str_list(value: Any) -> list[str]:
     if not isinstance(value, list):
@@ -144,13 +192,66 @@ def _month_payload(
     }
 
 
-def _about_digest_block() -> str:
+def _about_digest_block(process_href: str) -> str:
     return (
         "<section class='digest-about'>"
         "<h2>About This Digest</h2>"
-        "<p>[why i made digest, how it works]</p>"
+        f"<p>{html.escape(_SHORT_BLURB)}</p>"
+        f"<p class='small'><a href='{html.escape(process_href)}'>Detailed process and architecture</a></p>"
         "</section>"
     )
+
+
+def _load_prompt_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except Exception:
+        return "(prompt unavailable)"
+
+
+def _keyword_list_html(items: list[str]) -> str:
+    values = "".join(f"<li><code>{html.escape(item)}</code></li>" for item in items)
+    return f"<ul>{values}</ul>"
+
+
+def render_process_page() -> str:
+    paragraphs = "\n".join(f"<p>{html.escape(text)}</p>" for text in _PROCESS_DETAILS_PARAGRAPHS)
+    triage_prompt = html.escape(_load_prompt_text(Path("prompts/triage.md")))
+    summary_prompt = html.escape(_load_prompt_text(Path("prompts/summarize.md")))
+    return f"""<!doctype html>
+<html><head><meta charset='utf-8'><title>Digest Process</title>
+<link rel='stylesheet' href='../assets/style.css'></head><body>
+<main class='container process-page'>
+<h1>How This Digest Works</h1>
+<p class='sub'><a href='../index.html'>Back to main page</a> · <a href='../explore/index.html'>Explore all papers</a></p>
+<section class='process-content'>
+{paragraphs}
+<h2>arXiv Retrieval Keywords</h2>
+<p>The retrieval step requires EEG terms plus one of two foundation-model term sets in title/abstract matching.</p>
+<p><strong>EEG term set</strong> (used in both queries):</p>
+{_keyword_list_html(_EEG_KEYWORDS)}
+<p><strong>FM term set A</strong>:</p>
+{_keyword_list_html(_FM_KEYWORDS_SET_A)}
+<p><strong>FM term set B</strong>:</p>
+{_keyword_list_html(_FM_KEYWORDS_SET_B)}
+<p><strong>Query A</strong></p>
+<pre class='prompt-block'>{html.escape(QUERY_A)}</pre>
+<p><strong>Query B</strong></p>
+<pre class='prompt-block'>{html.escape(QUERY_B)}</pre>
+<h2>LLM Prompts</h2>
+<p>These are the full prompts used for each stage.</p>
+<details class='prompt-details'>
+<summary>Triage prompt (<code>prompts/triage.md</code>)</summary>
+<pre class='prompt-block'>{triage_prompt}</pre>
+</details>
+<details class='prompt-details'>
+<summary>Summary prompt (<code>prompts/summarize.md</code>)</summary>
+<pre class='prompt-block'>{summary_prompt}</pre>
+</details>
+</section>
+</main>
+</body></html>
+"""
 
 
 def _month_label(month: str) -> str:
@@ -179,9 +280,9 @@ def render_month_page(
   <main id='digest-app' class='container' data-view='month' data-month='{month_attr}' data-manifest-json='{manifest_json}' data-month-json='{month_json}'>
     <div class='header'>
       <h1>{month_title} Digest</h1>
-      <p class='sub'><a class='back-link' href='../../index.html'>Back to main page</a> · <a href='../../explore/index.html'>Explore all papers</a></p>
+      <p class='sub'><a class='back-link' href='../../index.html'>Back to main page</a> · <a href='../../explore/index.html'>Explore all papers</a> · <a href='../../process/index.html'>Process details</a></p>
     </div>
-    {_about_digest_block()}
+    {_about_digest_block("../../process/index.html")}
     <section id='controls' class='controls'></section>
     <p id='results-meta' class='small'></p>
     <section id='results'></section>
@@ -201,8 +302,8 @@ def render_home_page(months: list[str]) -> str:
 <link rel='stylesheet' href='assets/style.css'></head><body>
 <main id='digest-app' class='container' data-view='home' data-month='' data-manifest-json='data/months.json' data-fallback-months='{fallback_months}'>
 <h1>EEG Foundation Model Digest</h1>
-{_about_digest_block()}
-<p class='sub'>Latest month: <a href='{latest_link}'>{latest}</a> · <a href='explore/index.html'>Explore all papers</a></p>
+{_about_digest_block("process/index.html")}
+<p class='sub'>Latest month: <a href='{latest_link}'>{latest}</a> · <a href='explore/index.html'>Explore all papers</a> · <a href='process/index.html'>Process details</a></p>
 <section id='home-controls' class='controls'></section>
 <section id='home-results'></section>
 <details class='archive-fallback'>
@@ -222,8 +323,8 @@ def render_explore_page(months: list[str]) -> str:
 <link rel='stylesheet' href='../assets/style.css'></head><body>
 <main id='digest-app' class='container' data-view='explore' data-month='' data-manifest-json='../data/months.json' data-fallback-months='{fallback_months}'>
 <h1>Explore All Digests</h1>
-{_about_digest_block()}
-<p class='sub'><a href='../index.html'>Back to main page</a></p>
+{_about_digest_block("../process/index.html")}
+<p class='sub'><a href='../index.html'>Back to main page</a> · <a href='../process/index.html'>Process details</a></p>
 <section id='controls' class='controls'></section>
 <p id='results-meta' class='small'></p>
 <section id='results'></section>
@@ -369,6 +470,9 @@ def update_home(docs_dir: Path) -> None:
     explore_dir = docs_dir / "explore"
     explore_dir.mkdir(parents=True, exist_ok=True)
     (explore_dir / "index.html").write_text(render_explore_page(months), encoding="utf-8")
+    process_dir = docs_dir / "process"
+    process_dir.mkdir(parents=True, exist_ok=True)
+    (process_dir / "index.html").write_text(render_process_page(), encoding="utf-8")
     manifest = {
         "latest": months[0] if months else None,
         "months": [_month_manifest_item(month_dir) for month_dir in month_dirs],

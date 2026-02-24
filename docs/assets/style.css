@@ -318,6 +318,46 @@ button:hover {
   color: #444;
 }
 
+.process-page h2 {
+  margin-top: 18px;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.process-content p {
+  margin: 10px 0;
+}
+
+.process-content ul {
+  margin: 8px 0 12px 20px;
+}
+
+.prompt-details {
+  margin: 10px 0;
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+}
+
+.prompt-details summary {
+  cursor: pointer;
+  color: #0b57d0;
+  font-weight: 600;
+}
+
+.prompt-block {
+  margin: 8px 0 4px 0;
+  padding: 10px;
+  border: 1px solid #ebebeb;
+  border-radius: 8px;
+  background: #f8f8f8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .year-block {
   margin: 12px 0;
   border: 1px solid #e3e3e3;
