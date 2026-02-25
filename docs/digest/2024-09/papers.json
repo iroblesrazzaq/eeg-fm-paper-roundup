@@ -26,7 +26,7 @@
           "cs.LG"
         ],
         "data_scale": {
-          "channels": 20.0,
+          "channels": null,
           "datasets": [
             "TUEG",
             "TUAB",
@@ -37,7 +37,7 @@
           "eeg_hours": null,
           "subjects": 15144.0
         },
-        "detailed_summary": "This paper pioneers EEG-language models (ELMs) by aligning functional brain data with medical textual information for the first time. The authors propose sub-unit alignment through timeseries cropping and text segmentation, combined with a multiple instance learning extension to address misalignment between irrelevant EEG or text segments. Their multimodal models significantly improve over EEG-only models across four clinical evaluations and enable zero-shot classification as well as retrieval of both neural signals and reports. The approach demonstrates considerable progress for clinical applications, particularly in scenarios with few labels.",
+        "detailed_summary": "This paper pioneers EEG-language models (ELMs) by aligning functional brain data with medical textual information for the first time. The authors propose multimodal pretraining on clinical reports and 15,000 EEGs using sub-unit alignment with timeseries cropping and text segmentation, combined with a multiple instance learning extension to address misalignment between irrelevant EEG or text segments. Their multimodal models significantly improve over EEG-only models across four clinical evaluations and enable zero-shot classification as well as retrieval of both neural signals and reports, representing significant progress for clinical applications.",
         "evaluation": {
           "benchmarks": [
             "TUAB",
@@ -46,42 +46,43 @@
             "TUEV"
           ],
           "headline_results": [
-            "TUAB 1% labels: 83.10% balanced accuracy",
-            "TUAB 100% labels: 87.11% balanced accuracy",
-            "Zero-shot classification: 84.31% F1-score",
-            "NMT 1% labels: 69.49% AUROC"
+            "84.31% balanced accuracy for zero-shot classification",
+            "83.10% balanced accuracy for linear probing at 1% labels",
+            "9.7% AUROC improvement over EEG-only models"
           ],
           "tasks": [
-            "pathology detection",
-            "seizure detection",
-            "event classification",
-            "zero-shot classification",
-            "retrieval"
+            "Zero-shot classification",
+            "Linear probing",
+            "EEG retrieval",
+            "Pathology detection",
+            "Seizure detection",
+            "Event classification"
           ]
         },
         "key_points": [
-          "New EEG foundation model: CEReBrO ELM-MIL achieves state-of-the-art pathology detection with 84.42% balanced accuracy on TUAB using linear probing",
-          "Novel multimodal alignment: Combines timeseries cropping and text segmentation with multiple instance learning to address data misalignment",
-          "Zero-shot capabilities: Enables classification and retrieval of neural signals and reports without explicit labels, improving label efficiency by up to 9.7%"
+          "New EEG foundation model: Multimodal pretraining on 15,000 EEGs and clinical reports using sub-unit alignment and multiple instance learning",
+          "Method novelty: Combines EEG timeseries cropping with text segmentation and MIL extension to address misalignment between irrelevant segments",
+          "Strongest evidence: Zero-shot pathology detection and 9.7% improvement in AUROC over EEG-only models at 1% labeled data"
         ],
         "limitations": [
-          "Limited by availability of paired EEG-report datasets",
-          "Computational constraints prevented scaling model sizes",
-          "Potential sensitivity to frequency of specific pathology in reports",
-          "Possible biases from language models affecting multimodal pretraining"
+          "Limited publicly available paired EEG-report datasets constrain scaling pretraining data",
+          "Computational constraints prevented analysis of scaling model sizes",
+          "Potential biases from language models may impact multimodal pretraining",
+          "Performance ceiling due to inter-rater variability in EEG classification",
+          "Need for careful study of how pathology frequency in reports impacts model performance"
         ],
         "method": {
-          "architecture": "Residual CNN with transformer-based language encoder",
-          "finetuning": "Linear probing for pathology detection",
-          "objective": "Contrastive learning with multiple instance learning extension",
-          "pretraining": "Multimodal alignment of EEG crops with segmented clinical reports"
+          "architecture": "Residual CNN EEG encoder + Transformer language encoder",
+          "finetuning": "Linear probing for downstream tasks",
+          "objective": "Contrastive learning with multimodal alignment (ELMe,l) and multiple instance learning extension (ELM-MIL)",
+          "pretraining": "Self-supervised pretraining on 15,000 EEGs with clinical reports using sub-unit alignment"
         },
-        "notes": "{\"chars\": 83601, \"error\": null, \"pages\": 25, \"tool\": \"pypdf\"};input_mode=fulltext;prompt_tokens=22426",
-        "one_liner": "EEG-language models (ELMs) trained on 15,000 EEGs and clinical reports enable zero-shot classification and retrieval of neural signals.",
+        "notes": "manual_resummary_prompt_update;input_mode=fulltext;prompt_tokens=22424",
+        "one_liner": "EEG-language models (ELMs) pretrained on 15,000 EEGs and clinical reports enable zero-shot pathology detection and outperform EEG-only models for clinical phenotyping.",
         "open_source": {
           "code_url": "https://github.com/SamGijsen/ELM",
-          "license": "unknown",
-          "weights_url": "pretrained models available"
+          "license": "Not specified",
+          "weights_url": "Available"
         },
         "paper_type": "new_model",
         "published_date": "2024-09-02",
@@ -103,7 +104,7 @@
           ]
         },
         "title": "EEG-Language Pretraining for Highly Label-Efficient Clinical Phenotyping",
-        "unique_contribution": "The paper introduces EEG-language models that combine multimodal alignment with timeseries cropping and text segmentation, enabling zero-shot classification and retrieval of neural signals and reports for the first time.",
+        "unique_contribution": "First application of multimodal pretraining combining natural language and functional brain data in a medical context, achieving highly label-efficient clinical phenotyping through EEG-language models.",
         "used_fulltext": true
       },
       "summary_failed_reason": null,

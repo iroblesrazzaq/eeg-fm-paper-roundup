@@ -1,6 +1,24 @@
 {
-  "latest": "2026-01",
+  "latest": "2026-02",
   "months": [
+    {
+      "empty_state": "has_papers",
+      "featured": {
+        "abs_url": "http://arxiv.org/abs/2602.18478v1",
+        "arxiv_id_base": "2602.18478",
+        "one_liner": "ZUNA is a 380M-parameter diffusion autoencoder that performs masked channel infilling and superresolution for arbitrary EEG electrode configurations.",
+        "title": "ZUNA: Flexible EEG Superresolution with Position-Aware Diffusion Autoencoders"
+      },
+      "href": "digest/2026-02/index.html",
+      "json_path": "digest/2026-02/papers.json",
+      "month": "2026-02",
+      "month_label": "February 2026",
+      "stats": {
+        "accepted": 6,
+        "candidates": 18,
+        "summarized": 6
+      }
+    },
     {
       "empty_state": "has_papers",
       "featured": {
@@ -214,7 +232,7 @@
       "stats": {
         "accepted": 9,
         "candidates": 19,
-        "summarized": 8
+        "summarized": 9
       }
     },
     {
@@ -222,7 +240,7 @@
       "featured": {
         "abs_url": "http://arxiv.org/abs/2501.10885v4",
         "arxiv_id_base": "2501.10885",
-        "one_liner": "New EEG foundation model: CEReBrO achieves state-of-the-art performance with 2× speed improvement and 6× less memory using alternating attention.",
+        "one_liner": "New compact EEG foundation model with alternating attention mechanism for efficient spatio-temporal modeling",
         "title": "CEReBrO: Compact Encoder for Representations of Brain Oscillations Using Efficient Alternating Attention"
       },
       "href": "digest/2025-01/index.html",

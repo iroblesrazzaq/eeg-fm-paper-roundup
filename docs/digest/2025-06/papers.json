@@ -28,77 +28,50 @@
           "eess.SP"
         ],
         "data_scale": {
-          "channels": 8.0,
-          "datasets": [
-            "Temple University Hospital EEG corpus"
-          ],
-          "eeg_hours": 26496.0,
-          "subjects": 14979.0
+          "channels": null,
+          "datasets": [],
+          "eeg_hours": null,
+          "subjects": null
         },
-        "detailed_summary": "This paper introduces a novel self-supervised pre-training method for EEG foundation models, adapting the HuBERT framework from speech processing to multi-channel EEG data. The model is trained on over 1,100 days of EEG data from 14,979 participants using a two-stage masked prediction approach with k-means clustering. The architecture uses a transformer-based design with eight EEG channels, optimized for real-time operation with minimal preprocessing. The model demonstrates strong performance on standard BCI tasks (P300, motor imagery) and shows ability to learn individual variability and alpha rhythm features, though it doesn't yet exceed state-of-the-art results on BCI benchmarks.",
+        "detailed_summary": "Unable to produce a reliable multi-sentence summary due to JSON validation failure.",
         "evaluation": {
-          "benchmarks": [
-            "Dataset A (55 participants)",
-            "Dataset B (109 participants)",
-            "Dataset C (12 participants)"
-          ],
-          "headline_results": [
-            "Above-chance performance on all BCI tasks",
-            "near-ceiling performance on participant recognition and eyes open/closed detection"
-          ],
-          "tasks": [
-            "P300 speller",
-            "motor imagery",
-            "participant recognition",
-            "eyes open/closed detection"
-          ]
+          "benchmarks": [],
+          "headline_results": [],
+          "tasks": []
         },
         "key_points": [
-          "New EEG foundation model: CEReBrO adapts HuBERT framework for self-supervised pre-training on 14,979 participants' EEG data.",
-          "Method novelty: Two-stage masked prediction with k-means clustering, optimized for real-time use with minimal preprocessing and eight channels.",
-          "Strong evidence: Model achieves above-chance performance on BCI benchmarks and learns individual variability and alpha rhythm features."
+          "unknown",
+          "unknown",
+          "unknown"
         ],
         "limitations": [
-          "Model performance doesn't exceed current state-of-the-art on BCI benchmarks",
-          "Pre-training data from hospital setting may not capture BCI-specific features",
-          "Limited to eight EEG channels, which may constrain spatial resolution",
-          "No evaluation of potential artifact learning (eye movements, etc.)",
-          "Real-time performance and latency not explicitly characterized"
+          "unknown",
+          "summary_json_error"
         ],
         "method": {
-          "architecture": "transformer-based with 6 conv layers + 12 transformer encoder layers",
-          "finetuning": "leave-one-participant-out cross-validation on 3 BCI benchmark datasets",
-          "objective": "masked reconstruction with k-means clustering (100 classes stage 1, 500 classes stage 2)",
-          "pretraining": "self-supervised on Temple University Hospital EEG corpus (1,104 days, 14,979 participants)"
+          "architecture": null,
+          "finetuning": null,
+          "objective": null,
+          "pretraining": null
         },
-        "notes": "{\"chars\": 31848, \"error\": null, \"pages\": 6, \"tool\": \"pypdf\"};input_mode=fulltext;prompt_tokens=9325",
-        "one_liner": "EEG foundation model pre-training method inspired by HuBERT for BCI tasks and electrophysiological feature learning.",
+        "notes": "manual_resummary_prompt_update_arcee;input_mode=fulltext;prompt_tokens=9323;summary_json_error",
+        "one_liner": "Summary unavailable due to JSON validation failure.",
         "open_source": {
           "code_url": null,
           "license": null,
           "weights_url": null
         },
-        "paper_type": "new_model",
+        "paper_type": "other",
         "published_date": "2025-06-02",
         "tags": {
-          "backbone": [
-            "transformer"
-          ],
-          "objective": [
-            "masked-reconstruction"
-          ],
-          "paper_type": [
-            "new-model"
-          ],
-          "tokenization": [
-            "time-patch"
-          ],
-          "topology": [
-            "fixed-montage"
-          ]
+          "backbone": [],
+          "objective": [],
+          "paper_type": [],
+          "tokenization": [],
+          "topology": []
         },
         "title": "EEG Foundation Models for BCI Learn Diverse Features of Electrophysiology",
-        "unique_contribution": "First EEG foundation model using HuBERT-inspired self-supervised pre-training that learns both BCI task features and broader electrophysiological components like alpha rhythms and individual variability.",
+        "unique_contribution": "unknown",
         "used_fulltext": true
       },
       "summary_failed_reason": null,
@@ -911,6 +884,6 @@
     "2506.20354",
     "2506.01867",
     "2506.23075",
-    "2506.09110"
+    "2506.17068"
   ]
 }

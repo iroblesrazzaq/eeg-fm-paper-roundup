@@ -34,7 +34,7 @@ What to focus on:
   3) what evidence is presented (dataset/task/result level) if available.
 - key_points: 2-3 concise bullet-style points for UI display.
   The first bullet MUST state what the paper is, starting with paper type in natural wording, e.g.,
-  "New EEG foundation model: CEReBrO ..."
+  "New EEG foundation model: ..."
   Do not use templated labels like "What it is:", "Core method/evidence:", or "Main practical takeaway:".
   Remaining bullet(s) should cover method novelty and strongest concrete evidence/result.
   Avoid copying `unique_contribution` verbatim; partial semantic overlap is allowed.

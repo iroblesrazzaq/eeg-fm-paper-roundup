@@ -138,44 +138,43 @@
           "cs.AI"
         ],
         "data_scale": {
-          "channels": 14.0,
+          "channels": 16.0,
           "datasets": [
-            "PhysioNet/Computing in Cardiology Challenge 2021",
             "DREAMER"
           ],
           "eeg_hours": null,
           "subjects": 23.0
         },
-        "detailed_summary": "This paper presents a multi-modal physiological signal analysis framework that adapts the CBraMod encoder for large-scale self-supervised ECG pretraining, introducing a dual-masking strategy to capture both intra-lead temporal patterns and inter-lead spatial dependencies. The approach utilizes a pre-trained CBraMod encoder for EEG and pre-trains a symmetric ECG encoder, equipping each modality with rich foundational representations that are then fused via simple embedding concatenation. Evaluated on emotion recognition using the DREAMER dataset, the method achieves near state-of-the-art performance across valence, arousal, and dominance dimensions, demonstrating that carefully designed physiological encoders with straightforward fusion can substantially improve downstream performance despite limited multi-modal supervision.",
+        "detailed_summary": "This paper proposes a multi-modal physiological signal analysis framework that leverages foundation models for both ECG and EEG. The authors adapt the CBraMod architecture for large-scale self-supervised ECG pretraining using a dual-masking strategy to capture intra- and inter-lead dependencies, while utilizing a pre-trained CBraMod encoder for EEG. These modality-specific encoders are then fused via simple embedding concatenation, allowing the classification head to learn cross-modal interactions. Evaluated on emotion recognition using the DREAMER dataset, the approach achieves near state-of-the-art performance across valence, arousal, and dominance dimensions, demonstrating that carefully designed physiological encoders with straightforward fusion can substantially improve downstream performance despite limited multi-modal supervision.",
         "evaluation": {
           "benchmarks": [
             "DREAMER dataset"
           ],
           "headline_results": [
-            "Achieves competitive performance with AUC scores of 84.79 (arousal), 86.69 (dominance), and 68.69 (valence), ranking best and second-best respectively among compared methods."
+            "Near state-of-the-art AUC and F1 scores across valence, arousal, and dominance tasks"
           ],
           "tasks": [
             "emotion recognition"
           ]
         },
         "key_points": [
-          "New EEG foundation model: CEReBrO leverages CBraMod encoder for large-scale self-supervised ECG pretraining with dual-masking strategy to capture intra- and inter-lead dependencies.",
-          "Method novelty: Combines pre-trained CBraMod EEG encoder with self-supervised pretraining of symmetric ECG encoder, using simple embedding concatenation for effective cross-modal learning.",
-          "Strong evidence: Achieves near state-of-the-art emotion recognition performance on DREAMER dataset with AUC scores of 84.79 (arousal) and 86.69 (dominance), ranking best and second-best respectively."
+          "New multi-modal physiological signal analysis framework combining pre-trained CBraMod EEG encoder with self-supervised ECG pretraining using dual-masking strategy.",
+          "Simple embedding concatenation fusion of modality-specific representations achieves near state-of-the-art emotion recognition performance on DREAMER dataset across valence, arousal, and dominance tasks.",
+          "Demonstrates effectiveness of foundation model approaches for label-efficient physiological signal analysis with limited multi-modal supervision."
         ],
         "limitations": [
           "Fusion strategy relies on simple embedding concatenation which may not fully exploit fine-grained temporal or cross-modal dependencies",
-          "Evaluation is constrained to emotion recognition task, leaving open questions regarding generalization to broader physiological applications and more diverse populations",
-          "Limited to subject-independent 3:1:1 train/validation/test splitting which may not capture all variability in real-world deployment scenarios"
+          "Evaluation limited to emotion recognition task, leaving generalization to broader physiological applications and diverse populations open",
+          "Potential for more advanced fusion mechanisms and synthetic data augmentation to further improve performance"
         ],
         "method": {
-          "architecture": "Adapts CBraMod transformer architecture for ECG pretraining with dual-masking strategy (patch masking and channel masking) to capture intra-lead temporal patterns and inter-lead spatial dependencies.",
-          "finetuning": null,
-          "objective": "Uses self-supervised pretraining on 88,253 12-lead ECG recordings from PhysioNet Challenge 2021 dataset.",
-          "pretraining": "Combines pre-trained CBraMod EEG encoder with self-supervised pretrained ECG encoder, fusing representations via simple embedding concatenation followed by classification head."
+          "architecture": "CBraMod transformer with 12 layers and 8 attention heads",
+          "finetuning": "Simple embedding concatenation fusion followed by classification head with feed-forward network",
+          "objective": "Dual-masking self-supervised pretraining (patch and channel masking) with reconstruction loss",
+          "pretraining": "Large-scale ECG pretraining using dual-masking strategy; EEG uses pre-trained CBraMod encoder"
         },
-        "notes": "{\"chars\": 21110, \"error\": null, \"pages\": 8, \"tool\": \"pypdf\"};input_mode=fulltext;prompt_tokens=6628",
-        "one_liner": "New EEG foundation model: CEReBrO leverages CBraMod encoder for large-scale self-supervised ECG pretraining with dual-masking strategy to capture intra- and inter-lead dependencies.",
+        "notes": "manual_resummary_prompt_update_arcee;input_mode=fulltext;prompt_tokens=6626",
+        "one_liner": "New EEG foundation model approach combining pre-trained CBraMod encoder with self-supervised ECG pretraining and simple concatenation fusion for emotion recognition.",
         "open_source": {
           "code_url": null,
           "license": null,
@@ -201,7 +200,7 @@
           ]
         },
         "title": "Leveraging Foundational Models and Simple Fusion for Multi-modal Physiological Signal Analysis",
-        "unique_contribution": "The paper introduces a dual-masking strategy for ECG pretraining that captures both intra-lead temporal patterns and inter-lead spatial dependencies, combined with simple embedding concatenation fusion that achieves near state-of-the-art emotion recognition performance.",
+        "unique_contribution": "Introduces a dual-masking strategy for self-supervised ECG pretraining and demonstrates that simple embedding concatenation of pre-trained modality-specific encoders achieves near state-of-the-art emotion recognition performance.",
         "used_fulltext": true
       },
       "summary_failed_reason": null,

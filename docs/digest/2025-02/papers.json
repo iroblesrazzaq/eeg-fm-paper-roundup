@@ -254,52 +254,48 @@
           "cs.LG"
         ],
         "data_scale": {
-          "channels": null,
+          "channels": 2.0,
           "datasets": [
             "MIMIC-III",
             "VitalDB"
           ],
           "eeg_hours": null,
-          "subjects": 33000
+          "subjects": 30000.0
         },
-        "detailed_summary": "This paper investigates cross-biosignal transfer learning by adapting a transformer-based EEG foundation model (CEReBrO) for blood pressure estimation from ECG and PPG signals. The authors fine-tune the pre-trained EEG model on MIMIC-III and VitalDB datasets, comparing frozen vs. unfrozen backbones and training from scratch vs. pre-trained weights. They achieve near state-of-the-art accuracy (MAE 1.57 mmHg for DBP, 2.72 mmHg for SBP on MIMIC-III) while meeting clinical standards (BHS Grade A, AAMI). Additionally, they apply dynamic INT8 quantization to reduce model size by over 3.5x (from 13.73 MB to 3.83 MB) with negligible performance loss, enabling real-time deployment on resource-constrained wearable devices.",
+        "detailed_summary": "This paper investigates cross-biosignal transfer learning by adapting a transformer-based EEG foundation model (CEReBrO) to estimate blood pressure from ECG and PPG signals. The authors fine-tune the pre-trained EEG model on MIMIC-III and VitalDB datasets, achieving near state-of-the-art accuracy for diastolic BP (MAE 1.57 mmHg) and surpassing prior work for systolic BP (MAE 2.72 mmHg). They also apply dynamic INT8 quantization, reducing the smallest model size by over 3.5x (from 13.73 MB to 3.83 MB) while preserving performance, enabling real-time deployment on resource-constrained wearable devices.",
         "evaluation": {
           "benchmarks": [
             "MIMIC-III",
             "VitalDB"
           ],
           "headline_results": [
-            "MAE_DBP_MIMIC-III: 1.57 mmHg",
-            "MAE_SBP_MIMIC-III: 2.72 mmHg",
-            "MAE_DBP_VitalDB: 1.92 mmHg",
-            "MAE_SBP_VitalDB: 3.14 mmHg",
-            "BHS Grade: A",
-            "AAMI Compliance: Pass"
+            "DBP_MAE: 1.57 mmHg",
+            "SBP_MAE: 2.72 mmHg",
+            "Model size reduction: 3.5x"
           ],
           "tasks": [
-            "BP estimation (SBP/DBP)"
+            "BP estimation"
           ]
         },
         "key_points": [
-          "New EEG foundation model: CEReBrO pre-trained on EEG successfully fine-tuned for BP estimation from ECG/PPG signals.",
-          "Cross-biosignal transfer: Achieves near state-of-the-art accuracy (MAE 1.57 mmHg DBP, 2.72 mmHg SBP) on MIMIC-III while meeting clinical standards.",
-          "Hardware optimization: Dynamic INT8 quantization reduces model size by 3.5x (13.73 MB to 3.83 MB) with minimal accuracy loss for wearable deployment."
+          "New EEG foundation model: Adapts pre-trained EEG transformer to ECG/PPG for cuffless BP monitoring.",
+          "Cross-biosignal transfer: Achieves near-SOTA DBP accuracy (1.57 mmHg) and 1.5x better SBP accuracy than prior work.",
+          "Hardware optimization: Dynamic INT8 quantization reduces model size by 3.5x while maintaining clinical-grade accuracy."
         ],
         "limitations": [
-          "Limited evaluation to two datasets (MIMIC-III, VitalDB) which may not capture full real-world variability",
-          "No extensive ablation on different quantization strategies beyond INT8",
-          "Potential overfitting risk during fine-tuning of large models despite validation techniques",
-          "Real-time deployment on ultra-low-power microcontrollers not yet validated",
-          "Motion artifacts and sensor placement variations not explicitly addressed in evaluation"
+          "Limited to MIMIC-III and VitalDB datasets",
+          "Real-world artifacts and motion conditions not fully addressed",
+          "No embedded platform validation demonstrated",
+          "Potential overfitting risk with large models on limited data"
         ],
         "method": {
-          "architecture": "Transformer-based CEReBrO",
-          "finetuning": "ECG/PPG fine-tuning",
-          "objective": "BP regression",
-          "pretraining": "EEG pre-training"
+          "architecture": "Transformer encoder (CEReBrO)",
+          "finetuning": "ECG/PPG signals",
+          "objective": "Masked reconstruction",
+          "pretraining": "EEG signals"
         },
-        "notes": "{\"chars\": 41290, \"error\": null, \"pages\": null, \"tool\": \"cached\"};input_mode=fulltext;prompt_tokens=11855",
-        "one_liner": "EEG-based foundation model fine-tuned for BP estimation from ECG/PPG with quantization for edge deployment.",
+        "notes": "manual_resummary_prompt_update_arcee;input_mode=fulltext;prompt_tokens=11950",
+        "one_liner": "EEG-based foundation model fine-tuned on ECG/PPG for cuffless BP estimation with INT8 quantization.",
         "open_source": {
           "code_url": null,
           "license": null,
@@ -312,8 +308,7 @@
             "transformer"
           ],
           "objective": [
-            "masked-reconstruction",
-            "contrastive"
+            "masked-reconstruction"
           ],
           "paper_type": [
             "new-model"
@@ -322,11 +317,11 @@
             "time-patch"
           ],
           "topology": [
-            "fixed-montage"
+            "channel-flexible"
           ]
         },
         "title": "Finetuning and Quantization of EEG-Based Foundational BioSignal Models on ECG and PPG Data for Blood Pressure Estimation",
-        "unique_contribution": "First demonstration that a large EEG-based foundation model can be effectively fine-tuned for BP estimation from ECG/PPG without additional large-scale pre-training, combined with quantization for edge deployment.",
+        "unique_contribution": "First demonstration that a large EEG-based foundation model can be fine-tuned for BP estimation from ECG/PPG without additional pre-training, combined with hardware-friendly quantization for edge deployment.",
         "used_fulltext": true
       },
       "summary_failed_reason": null,
@@ -362,8 +357,61 @@
         "pdf": "https://arxiv.org/pdf/2502.17462v1"
       },
       "published_date": "2025-02-10",
-      "summary": null,
-      "summary_failed_reason": "summary_json_error",
+      "summary": {
+        "arxiv_id_base": "2502.17462",
+        "categories": [
+          "eess.SP",
+          "cs.AI",
+          "cs.LG"
+        ],
+        "data_scale": {
+          "channels": null,
+          "datasets": [],
+          "eeg_hours": null,
+          "subjects": null
+        },
+        "detailed_summary": "Unable to produce a reliable multi-sentence summary due to JSON validation failure.",
+        "evaluation": {
+          "benchmarks": [],
+          "headline_results": [],
+          "tasks": []
+        },
+        "key_points": [
+          "unknown",
+          "unknown",
+          "unknown"
+        ],
+        "limitations": [
+          "unknown",
+          "summary_json_error"
+        ],
+        "method": {
+          "architecture": null,
+          "finetuning": null,
+          "objective": null,
+          "pretraining": null
+        },
+        "notes": "{\"chars\": 88129, \"error\": null, \"pages\": 48, \"tool\": \"pypdf\"};input_mode=fulltext;prompt_tokens=34831;summary_json_error;summary_retry_failed;summary_retry_failed_reason=exception:ConnectError",
+        "one_liner": "Summary unavailable due to JSON validation failure.",
+        "open_source": {
+          "code_url": null,
+          "license": null,
+          "weights_url": null
+        },
+        "paper_type": "other",
+        "published_date": "2025-02-10",
+        "tags": {
+          "backbone": [],
+          "objective": [],
+          "paper_type": [],
+          "tokenization": [],
+          "topology": []
+        },
+        "title": "The Case for Cleaner Biosignals: High-fidelity Neural Compressor Enables Transfer from Cleaner iEEG to Noisier EEG",
+        "unique_contribution": "unknown",
+        "used_fulltext": true
+      },
+      "summary_failed_reason": null,
       "title": "The Case for Cleaner Biosignals: High-fidelity Neural Compressor Enables Transfer from Cleaner iEEG to Noisier EEG",
       "triage": {
         "confidence": 0.9,
@@ -515,52 +563,51 @@
           "cs.LG"
         ],
         "data_scale": {
-          "channels": 64.0,
+          "channels": 105.0,
           "datasets": [
             "ZuCo"
           ],
-          "eeg_hours": 10.0,
+          "eeg_hours": null,
           "subjects": 30.0
         },
-        "detailed_summary": "This paper introduces a novel EEG-to-text decoding framework that bridges brain signals and natural language through subject-specific deep representation learning. The approach integrates EEG feature extraction with pre-trained language models (BART and GPT-4) to enable open-vocabulary text generation from brain activity. The framework addresses key limitations of existing closed-vocabulary EEG-to-text systems by incorporating subject-specific learning to handle inter-subject variability and semantic refinement through GPT-4. Evaluated on the ZuCo dataset, the method demonstrates improved performance across BLEU, ROUGE, and BERTScore metrics compared to prior approaches.",
+        "detailed_summary": "This paper introduces a novel framework for translating EEG signals into coherent, open-vocabulary text, addressing limitations of current closed-vocabulary approaches. The system combines a subject-specific brain module using bidirectional GRUs and transformer encoders with a language module employing BART for initial text generation and GPT-4 for refinement. Trained on the ZuCo dataset, the model achieves state-of-the-art performance on BLEU, ROUGE, and BERTScore metrics, demonstrating improved semantic fidelity and individual brain variation understanding compared to existing methods.",
         "evaluation": {
           "benchmarks": [
             "ZuCo dataset"
           ],
           "headline_results": [
-            "improved BLEU over prior methods",
-            "improved ROUGE over prior methods",
-            "improved BERTScore over prior methods"
+            "BLEU-1: 42.34%, BLEU-2: 25.26%, BLEU-3: 14.91%, BLEU-4: 8.89%, ROUGE-1-F: 32.66%, BERTScore-F: 53.53%"
           ],
           "tasks": [
             "EEG-to-text decoding"
           ]
         },
         "key_points": [
-          "New EEG foundation model: CEReBrO framework for open-vocabulary EEG-to-text decoding using subject-specific deep learning",
-          "Core method/evidence: Achieves state-of-the-art BLEU, ROUGE, and BERTScore on ZuCo dataset through integration of BART and GPT-4 with EEG feature extraction",
-          "Main practical takeaway: Enables personalized brain-to-text communication for individuals with speech impairments through web platform with text-to-speech output"
+          "New EEG foundation model: Open-vocabulary EEG-to-text decoding framework integrating subject-specific representation learning with pre-trained language models.",
+          "Method novelty: Two-stage training approach combining subject-specific EEG feature extraction with BART language model fine-tuning and GPT-4 refinement for semantic accuracy.",
+          "Strongest evidence: Achieves BLEU-1 score of 42.34%, ROUGE-1-F of 32.66%, and BERTScore-F of 53.53% on ZuCo dataset, outperforming existing methods including T5 and ProphetNet."
         ],
         "limitations": [
-          "Limited subject quantity in evaluation",
-          "Language-specific constraints (English only)",
-          "Computational resource requirements for real-time processing",
-          "Dataset limitations affecting generalizability",
-          "Need for accurate temporal synchronization between EEG and text",
-          "Noise and low spatial resolution inherent to EEG signals"
+          "Limited dataset size (30 subjects total across ZuCo v1.0 and v2.0) restricts generalizability",
+          "English-only language constraint limits multilingual applicability",
+          "Requires accurate temporal alignment and high-quality EEG data for optimal performance",
+          "Computational resource intensive training process with sophisticated neural architectures",
+          "External GPT-4 enhancement needed for optimal output quality",
+          "Current approach requires extensive pre-processing of EEG signals",
+          "Dataset limitations: subjects reading in English only, limiting generalizability to other languages"
         ],
         "method": {
-          "architecture": "BART + GPT-4 with subject-specific EEG feature extraction",
-          "finetuning": "EEG-to-text adaptation on ZuCo dataset",
-          "objective": "open-vocabulary text generation",
-          "pretraining": "BART pre-trained on text corpora"
+          "architecture": "EEG signals processed through bidirectional GRU and transformer encoder for subject-specific feature extraction, then decoded using BART language model and refined with GPT-4. Two-stage training: first aligning EEG features with BART embeddings using MSE loss, then fine-tuning BART with cross-entropy loss for text generation.",
+          "finetuning": null,
+          "objective": null,
+          "pretraining": null
         },
-        "notes": "{\"chars\": 71450, \"error\": null, \"pages\": null, \"tool\": \"cached\"};input_mode=fulltext_slices;reason=fulltext_over_limit;prompt_tokens=19592;max_tokens=1",
-        "one_liner": "EEG-to-text foundation model using subject-specific deep representation learning and NLP integration.",
+        "notes": "manual_resummary_prompt_update_arcee;input_mode=fulltext;prompt_tokens=19590",
+        "one_liner": "New EEG foundation model: Open-vocabulary EEG-to-text decoding framework integrating subject-specific representation learning with pre-trained language models.",
         "open_source": {
-          "code_url": "web platform available",
-          "license": "unknown",
-          "weights_url": "models available"
+          "code_url": null,
+          "license": null,
+          "weights_url": null
         },
         "paper_type": "new_model",
         "published_date": "2025-02-11",
@@ -582,7 +629,7 @@
           ]
         },
         "title": "Bridging Brain Signals and Language: A Deep Learning Approach to EEG-to-Text Decoding",
-        "unique_contribution": "First EEG-to-text foundation model combining subject-specific deep representation learning with open-vocabulary NLP for brain-to-text decoding.",
+        "unique_contribution": "First end-to-end deep learning framework for open-vocabulary EEG-to-text decoding that integrates subject-specific representation learning with pre-trained language models and includes a deployable web platform with text-to-speech functionality.",
         "used_fulltext": true
       },
       "summary_failed_reason": null,
@@ -934,7 +981,7 @@
   "stats": {
     "accepted": 9,
     "candidates": 19,
-    "summarized": 8
+    "summarized": 9
   },
   "top_picks": [
     "2502.17464",

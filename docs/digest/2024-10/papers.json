@@ -134,7 +134,7 @@
           "cs.LG"
         ],
         "data_scale": {
-          "channels": 20.0,
+          "channels": null,
           "datasets": [
             "Physionet Challenge 2018 (EEG)",
             "SleepEDFx (EEG)",
@@ -142,43 +142,44 @@
             "Physionet Challenge 2021 (ECG)"
           ],
           "eeg_hours": null,
-          "subjects": 62.0
+          "subjects": null
         },
-        "detailed_summary": "This paper introduces contrastive random lead coding (CRLC), a method for creating positive pairs in contrastive learning of multivariate biosignals without relying on augmentations or temporal segments. CRLC randomly samples subsets of input channels to form positive pairs, enabling channel-agnostic self-supervision. The approach is validated on EEG and ECG data, showing superior performance compared to competing strategies, especially in the channel-agnostic setting. For EEG tasks, CRLC surpasses the current state-of-the-art reference model, while for ECG it achieves comparable results. The method leverages a message passing neural network (MPNN) to extract inter-channel information, making the model flexible across varying channel configurations.",
+        "detailed_summary": "This paper addresses the challenge of self-supervised learning for multivariate biosignals where the number of input channels varies across applications. The authors introduce contrastive random lead coding (CRLC), a method that creates positive pairs by randomly sampling subsets of input channels, enabling channel-agnostic pretraining. They validate CRLC on EEG and ECG data, showing it outperforms competing strategies including contrastive segment coding and contrastive augmented coding. Notably, CRLC surpasses the current state-of-the-art reference model for EEG tasks while achieving comparable results for ECG. The approach leverages a message passing neural network (MPNN) architecture that can handle variable channel configurations without discarding inter-channel information.",
         "evaluation": {
           "benchmarks": [
-            "State-of-the-art reference models"
+            "SleepEDFx",
+            "MASS",
+            "Chapman Shaoxing"
           ],
           "headline_results": [
-            "Outperforms state-of-the-art on EEG tasks",
-            "Achieves comparable results on ECG tasks in the channel-agnostic setting"
+            "CRLC outperforms state-of-the-art reference model for EEG tasks",
+            "CRLC achieves comparable results for ECG tasks",
+            "Evaluated with balanced accuracy across multiple sample sizes"
           ],
           "tasks": [
-            "SleepEDFx (2-channel EEG)",
-            "MASS (20-channel EEG)",
-            "Physionet Challenge 2021 (ECG)"
+            "EEG sleep staging",
+            "ECG classification"
           ]
         },
         "key_points": [
-          "New EEG foundation model: CEReBrO uses CRLC for channel-agnostic self-supervision, outperforming state-of-the-art on EEG tasks.",
-          "Method novelty: CRLC creates positive pairs by randomly sampling subsets of input channels, avoiding reliance on augmentations or temporal segments.",
-          "Strongest evidence: CRLC surpasses state-of-the-art reference models on EEG tasks and achieves comparable results on ECG tasks in the channel-agnostic setting."
+          "New EEG foundation model: Introduces contrastive random lead coding (CRLC) for channel-agnostic self-supervision of biosignals",
+          "Method novelty: Uses random subsets of input channels to create positive pairs, enabling transfer across variable channel setups",
+          "Strongest evidence: CRLC outperforms state-of-the-art reference model for EEG tasks and achieves comparable results for ECG"
         ],
         "limitations": [
-          "CRLC performance on ECG is comparable but not superior to state-of-the-art",
-          "Model size (5.9 × 10⁴ parameters) smaller than state-of-the-art (9.0 × 10⁷ parameters)",
-          "Requires at least 2 input channels for fine-tuning",
-          "Ablation study shows MPNN impact is less significant for EEG than ECG",
-          "Relies on synthetic data for controlled experiments"
+          "State-of-the-art reference model (W2V+CMSC+RLM) still outperforms proposed method for ECG tasks",
+          "MPNN setup uses fully connected graph which may overfit on EEG data",
+          "Models pretrained on fixed channel datasets (6 EEG channels, 12 ECG leads) may not generalize to all possible channel configurations",
+          "No investigation of optimal graph structures for biosignals beyond fully connected"
         ],
         "method": {
-          "architecture": "Channel-agnostic model with convolutional encoder + MPNN",
-          "finetuning": "Fine-tuned on SleepEDFx (2-channel EEG), MASS (20-channel EEG), and Physionet Challenge 2021 (ECG)",
+          "architecture": "Channel-agnostic model architecture using convolutional encoder + MPNN",
+          "finetuning": null,
           "objective": "CRLC creates positive pairs by randomly sampling channel subsets",
-          "pretraining": "NT-Xent and TS2Vec losses"
+          "pretraining": "compared with CSC (temporal segments) and CAC (augmentations); trained with NT-Xent and TS2Vec contrastive losses"
         },
-        "notes": "{\"chars\": 70357, \"error\": null, \"pages\": 13, \"tool\": \"pypdf\"};input_mode=fulltext;prompt_tokens=19331",
-        "one_liner": "CRLC enables channel-agnostic self-supervision of biosignals by using random subsets of channels as positive pairs.",
+        "notes": "manual_resummary_prompt_update;input_mode=fulltext;prompt_tokens=19329",
+        "one_liner": "Contrastive random lead coding (CRLC) enables channel-agnostic self-supervision of biosignals by using random subsets of channels as positive pairs.",
         "open_source": {
           "code_url": "https://github.com/theabrusch/Multiview_TS_SSL",
           "license": null,
@@ -204,7 +205,7 @@
           ]
         },
         "title": "Contrastive random lead coding for channel-agnostic self-supervision of biosignals",
-        "unique_contribution": "CRLC enables channel-agnostic self-supervision by using random subsets of channels as positive pairs, outperforming state-of-the-art methods on EEG tasks.",
+        "unique_contribution": "The paper introduces contrastive random lead coding (CRLC) as a novel strategy for creating positive pairs in contrastive learning of multivariate biosignals, enabling channel-agnostic pretraining that outperforms existing methods and state-of-the-art reference models.",
         "used_fulltext": true
       },
       "summary_failed_reason": null,
