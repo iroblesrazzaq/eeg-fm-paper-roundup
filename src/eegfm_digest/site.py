@@ -75,6 +75,7 @@ _PROJECT_REPO_URL = "https://github.com/iroblesrazzaq/EEG-FM-Digest"
 _PERSONAL_WEBSITE_URL = "https://iroblesrazzaq.github.io/"
 _LINKEDIN_URL = "https://www.linkedin.com/in/ismaelroblesrazzaq"
 _EMAIL_ADDRESS = "ismaelroblesrazzaq@gmail.com"
+_ASSET_VERSION = "20260225-1"
 
 _ICON_SVGS = {
     "github": (
@@ -360,7 +361,7 @@ def render_process_page() -> str:
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "process")
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><title>About</title>
-<link rel='stylesheet' href='../assets/style.css'></head><body>
+<link rel='stylesheet' href='../assets/style.css?v={_ASSET_VERSION}'></head><body>
 {nav}
 <main class='container process-page'>
 <h1>About This Digest</h1>
@@ -426,7 +427,7 @@ def render_month_page(
     nav = _nav_html("../../index.html", "../../explore/index.html", "../../process/index.html", "home")
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><title>EEG-FM Digest {html.escape(month)}</title>
-<link rel='stylesheet' href='../../assets/style.css'></head>
+<link rel='stylesheet' href='../../assets/style.css?v={_ASSET_VERSION}'></head>
 <body>
   {nav}
   <main id='digest-app' class='container' data-view='month' data-month='{month_attr}' data-manifest-json='{manifest_json}' data-month-json='{month_json}'>
@@ -439,7 +440,7 @@ def render_month_page(
     <p id='results-meta' class='small'></p>
     <section id='results'></section>
   </main>
-  <script src='../../assets/site.js'></script>
+  <script src='../../assets/site.js?v={_ASSET_VERSION}'></script>
 </body></html>
 """
 
@@ -449,14 +450,14 @@ def render_home_page(months: list[str]) -> str:
     nav = _nav_html("index.html", "explore/index.html", "process/index.html", "home")
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><title>EEG-FM Digest</title>
-<link rel='stylesheet' href='assets/style.css'></head><body>
+<link rel='stylesheet' href='assets/style.css?v={_ASSET_VERSION}'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='home' data-month='' data-manifest-json='data/months.json' data-fallback-months='{fallback_months}'>
 {_about_digest_block("process/index.html", include_process_cta=False)}
 <section id='home-controls' class='controls'></section>
 <section id='home-results'></section>
 </main>
-<script src='assets/site.js'></script>
+<script src='assets/site.js?v={_ASSET_VERSION}'></script>
 </body></html>
 """
 
@@ -466,7 +467,7 @@ def render_explore_page(months: list[str]) -> str:
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "explore")
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><title>Search</title>
-<link rel='stylesheet' href='../assets/style.css'></head><body>
+<link rel='stylesheet' href='../assets/style.css?v={_ASSET_VERSION}'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='explore' data-month='' data-manifest-json='../data/months.json' data-fallback-months='{fallback_months}'>
 <h1>Search</h1>
@@ -474,7 +475,7 @@ def render_explore_page(months: list[str]) -> str:
 <p id='results-meta' class='small'></p>
 <section id='results'></section>
 </main>
-<script src='../assets/site.js'></script>
+<script src='../assets/site.js?v={_ASSET_VERSION}'></script>
 </body></html>
 """
 
