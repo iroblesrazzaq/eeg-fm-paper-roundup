@@ -20,20 +20,29 @@ _PROCESS_DETAILS_INTRO = (
 )
 
 _PROCESS_DETAILS_STEPS = [
-    "First we call the arXiv API to retrieve papers with EEG-FM-related terms in their title and abstract.",
     (
-        "Then, we use an LLM on the title and abstract to triage all papers returned by the arXiv search. "
-        "The model returns a decision (accept, reject, borderline), its confidence, and 2-4 reasons "
-        "for its decision."
+        "First we call the arXiv API to retrieve papers with EEG-FM-related terms in their title and abstract. "
+        "This yielded me 492 candidate papers."
     ),
     (
-        "Next, for all models accepted by the triage LLM, we download the pdf, extract text with PyMuPDF, "
+        "Then, I use an LLM on the title and abstract to triage all papers returned by the arXiv search. "
+        "The model returns a decision (accept, reject, borderline), its confidence, and 2-4 reasons "
+        "for its decision. 94 papers passed this step."
+    ),
+    (
+        "Finally, for all models accepted by the triage LLM, we download the pdf, extract text with PyMuPDF, "
         "and run a summary LLM where we extract a summary, bullet points, unique contribution, and tags."
     ),
 ]
 
 _PROCESS_DETAILS_FOOTER = (
-    "All triage and summary LLM calls through February 2026 use arcee-ai/trinity-large-preview:free."
+    "All triage and summary LLM calls through February 2026 use arcee-ai/trinity-large-preview:free "
+    "(thanks to the Arcee AI team for making their model free on OpenRouter). For all previous papers "
+    "(2021 - Jan 2026), running this whole process cost ~3 million tokens, so each accepted paper costs "
+    "~30,000 tokens (including averaged triage costs for papers that don't pass). Crucially, this digest "
+    "excludes models pretrained on data from one specific task and fine-tuned specifically for that same task "
+    "- we define an EEG FM as a large model pretrained on EEG data, built with the potential and intention "
+    "for broad transfer. I update the digest at least once a month, hopefully every week if I'm diligent."
 )
 
 _PROCESS_LIMITATIONS = [
