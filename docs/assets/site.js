@@ -706,7 +706,7 @@ function renderHome(app, state) {
         (total, row) => total + safeNumber(row?.stats?.accepted, 0),
         0,
       );
-      const yearCountText = `${yearPaperCount} ${yearPaperCount === 1 ? "paper" : "papers"}`;
+      const yearCountText = `Total: ${yearPaperCount} ${yearPaperCount === 1 ? "paper" : "papers"}`;
       const cards = groups[year]
         .map((row) => {
           const featured = row.featured;
@@ -726,10 +726,11 @@ function renderHome(app, state) {
               `
               : `<p class="small">Featured paper: not set.</p>`;
           return `
-            <article class="month-card">
-              <a class="month-card-link" href="${monthHref}" aria-label="Open ${esc(monthLabel)} Digest"></a>
+            <article class="month-card" data-month-href="${monthHref}" tabindex="0" role="link" aria-label="Open ${esc(
+              monthLabel,
+            )} Digest">
               <div class="month-head">
-                <h3>${esc(monthLabel)} Digest</h3>
+                <h3><a class="month-title-link" href="${monthHref}">${esc(monthLabel)} Digest</a></h3>
                 <p class="small month-stats">${esc(statsText)}</p>
               </div>
               ${featuredHtml}
@@ -748,6 +749,57 @@ function renderHome(app, state) {
     })
     .join("");
   results.innerHTML = yearBlocks;
+  bindMonthCardLinks(results);
+}
+
+function bindMonthCardLinks(container) {
+  if (container.dataset.monthCardLinksBound === "1") {
+    return;
+  }
+  container.dataset.monthCardLinksBound = "1";
+
+  container.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!target || typeof target.closest !== "function") {
+      return;
+    }
+    if (target.closest("a.featured-paper-link")) {
+      return;
+    }
+    if (target.closest("a.month-title-link")) {
+      return;
+    }
+    const card = target.closest(".month-card[data-month-href]");
+    if (!card || !container.contains(card)) {
+      return;
+    }
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    const href = card.getAttribute("data-month-href");
+    if (href) {
+      window.location.assign(href);
+    }
+  });
+
+  container.addEventListener("keydown", (event) => {
+    const target = event.target;
+    if (!target || typeof target.closest !== "function") {
+      return;
+    }
+    const card = target.closest(".month-card[data-month-href]");
+    if (!card || !container.contains(card)) {
+      return;
+    }
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+    event.preventDefault();
+    const href = card.getAttribute("data-month-href");
+    if (href) {
+      window.location.assign(href);
+    }
+  });
 }
 
 async function loadExploreMonthsLazy(app, state, monthRows, view) {

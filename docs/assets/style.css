@@ -412,9 +412,13 @@ button:hover {
 
 .year-summary-count {
   font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
+  color: var(--ink);
+  font-weight: 700;
   white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
 }
 
 .home-month-grid {
@@ -440,26 +444,17 @@ button:hover {
   box-shadow: 0 12px 20px -24px rgba(36, 24, 12, 0.1);
 }
 
-.month-card-link {
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  z-index: 1;
-}
-
-.month-card-link:focus-visible {
+.month-card[role="link"]:focus-visible {
   outline: 2px solid rgba(125, 106, 82, 0.35);
   outline-offset: 2px;
 }
 
 .month-head {
   position: relative;
-  z-index: 2;
   display: flex;
   align-items: start;
   justify-content: space-between;
   gap: 10px;
-  pointer-events: none;
 }
 
 .month-card h3 {
@@ -474,23 +469,15 @@ button:hover {
 
 .featured-paper {
   position: relative;
-  z-index: 2;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line);
-  pointer-events: none;
 }
 
 .featured-title {
   margin: 4px 0 6px 0;
   font-weight: 700;
   line-height: 1.35;
-}
-
-.featured-paper-link {
-  position: relative;
-  z-index: 3;
-  pointer-events: auto;
 }
 
 #results-meta {
