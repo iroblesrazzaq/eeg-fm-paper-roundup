@@ -231,7 +231,7 @@ def _nav_html(
 ) -> str:
     tabs = [
         ("home", "Monthly Digest", home_href),
-        ("explore", "Explore", explore_href),
+        ("explore", "Search", explore_href),
         ("process", "About", process_href),
     ]
     links = "".join(

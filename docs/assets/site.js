@@ -458,12 +458,12 @@ function renderPaperCard(paper, view) {
   const weightsUrl = String(openSource.weights_url || "").trim();
   const links = [];
   if (codeUrl) {
-    links.push(`<a href="${esc(codeUrl)}">Code Here</a>`);
+    links.push(`<a class="resource-btn resource-btn-code" href="${esc(codeUrl)}">Code Here</a>`);
   }
   if (weightsUrl) {
-    links.push(`<a href="${esc(weightsUrl)}">Model Weights</a>`);
+    links.push(`<a class="resource-btn resource-btn-weights" href="${esc(weightsUrl)}">Model Weights</a>`);
   }
-  const linksHtml = links.length ? `<p class="links">${links.join(" ")}</p>` : "";
+  const linksHtml = links.length ? `<div class="resource-links">${links.join("")}</div>` : "";
 
   return `
     <article class="paper-card" id="${esc(paper.arxiv_id_base)}">
@@ -708,20 +708,23 @@ function renderHome(app, state) {
           const stats = row.stats || {};
           const paperCount = safeNumber(stats.accepted, 0);
           const statsText = `${paperCount} ${paperCount === 1 ? "paper" : "papers"}`;
+          const monthLabel = row.month_label || monthDisplayLabel(row.month);
+          const monthHref = esc(row.href);
           const featuredHtml =
             featured && featured.title
               ? `
                 <div class="featured-paper">
                   <p class="small">Featured paper</p>
-                  <p class="featured-title"><a href="${esc(featured.abs_url || row.href)}">${esc(featured.title)}</a></p>
+                  <p class="featured-title"><a class="featured-paper-link" href="${esc(featured.abs_url || row.href)}">${esc(featured.title)}</a></p>
                   ${featured.one_liner ? `<p class="small">${esc(featured.one_liner)}</p>` : ""}
                 </div>
               `
               : `<p class="small">Featured paper: not set.</p>`;
           return `
             <article class="month-card">
+              <a class="month-card-link" href="${monthHref}" aria-label="Open ${esc(monthLabel)} Digest"></a>
               <div class="month-head">
-                <h3><a href="${esc(row.href)}">${esc(row.month_label || monthDisplayLabel(row.month))} Digest</a></h3>
+                <h3>${esc(monthLabel)} Digest</h3>
                 <p class="small month-stats">${esc(statsText)}</p>
               </div>
               ${featuredHtml}

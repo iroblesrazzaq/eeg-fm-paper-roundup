@@ -281,6 +281,14 @@ button:hover {
   gap: 10px;
 }
 
+#digest-app[data-view="explore"] {
+  max-width: 1240px;
+}
+
+#digest-app[data-view="explore"] .tag-filter-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .tag-filter-grid.compact {
   margin-top: 10px;
 }
@@ -406,15 +414,36 @@ button:hover {
 }
 
 .month-card {
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 13px;
   background: var(--surface);
   box-shadow: 0 6px 14px -20px var(--shadow);
   animation: rise-in 240ms ease-out;
+  cursor: pointer;
+}
+
+.month-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 20px -24px rgba(36, 24, 12, 0.1);
+}
+
+.month-card-link {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  z-index: 1;
+}
+
+.month-card-link:focus-visible {
+  outline: 2px solid rgba(125, 106, 82, 0.35);
+  outline-offset: 2px;
 }
 
 .month-head {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -432,6 +461,8 @@ button:hover {
 }
 
 .featured-paper {
+  position: relative;
+  z-index: 2;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line);
@@ -441,6 +472,11 @@ button:hover {
   margin: 4px 0 6px 0;
   font-weight: 700;
   line-height: 1.35;
+}
+
+.featured-paper-link {
+  position: relative;
+  z-index: 3;
 }
 
 #results-meta {
@@ -559,6 +595,46 @@ button:hover {
   gap: 10px;
   margin-top: 10px;
   font-size: 13px;
+}
+
+.resource-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.resource-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.resource-btn:hover {
+  text-decoration: none;
+  background: var(--surface-strong);
+  border-color: var(--accent);
+}
+
+.resource-btn-code {
+  background: #f1f5fb;
+  border-color: #d8e3f3;
+  color: #3e5670;
+}
+
+.resource-btn-weights {
+  background: #f8f2ea;
+  border-color: #ead9c4;
+  color: #6e5a44;
 }
 
 .empty-state {
@@ -700,5 +776,11 @@ button:hover {
 
   .month-stats {
     text-align: left;
+  }
+}
+
+@media (max-width: 1240px) {
+  #digest-app[data-view="explore"] .tag-filter-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 }
