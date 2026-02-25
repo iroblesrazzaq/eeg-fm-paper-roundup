@@ -70,6 +70,7 @@ _FM_KEYWORDS_SET_B = [
 ]
 
 _AUTHOR_NAME = "Ismael Robles-Razzaq"
+_GITHUB_PROFILE_URL = "https://github.com/iroblesrazzaq"
 _PROJECT_REPO_URL = "https://github.com/iroblesrazzaq/EEG-FM-Digest"
 _PERSONAL_WEBSITE_URL = "https://iroblesrazzaq.github.io/"
 _LINKEDIN_URL = "https://www.linkedin.com/in/ismaelroblesrazzaq"
@@ -292,7 +293,7 @@ def _keyword_list_html(items: list[str]) -> str:
 
 def _header_contact_links_html() -> str:
     items = [
-        ("github", "GitHub repository", _PROJECT_REPO_URL),
+        ("github", "GitHub profile", _GITHUB_PROFILE_URL),
         ("website", "Personal website", _PERSONAL_WEBSITE_URL),
         ("linkedin", "LinkedIn profile", _LINKEDIN_URL),
         ("email", f"Email {_EMAIL_ADDRESS}", f"mailto:{_EMAIL_ADDRESS}"),
@@ -328,6 +329,10 @@ def _nav_html(
         )
         for key, label, href in tabs
     )
+    repo_link = (
+        f"<a class='site-nav-link site-nav-link-repo' href='{html.escape(_PROJECT_REPO_URL)}' "
+        "rel='noopener noreferrer' target='_blank'>GitHub Repo</a>"
+    )
     contacts = _header_contact_links_html()
     return (
         "<header class='site-shell'>"
@@ -336,7 +341,7 @@ def _nav_html(
         "<div class='site-brand'>"
         f"<p class='site-title'><a class='site-title-link' href='{html.escape(home_href)}'>EEG Foundation Model Digest</a></p>"
         "</div>"
-        f"<nav class='site-nav'>{links}</nav>"
+        f"<nav class='site-nav'>{links}{repo_link}</nav>"
         "</div>"
         "<div class='site-shell-meta'>"
         f"<p class='site-byline'>by <strong>{html.escape(_AUTHOR_NAME)}</strong></p>"

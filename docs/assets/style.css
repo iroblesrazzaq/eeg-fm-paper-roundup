@@ -186,6 +186,19 @@ a:hover {
   background: var(--surface-strong);
 }
 
+.site-nav-link-repo {
+  background: var(--accent-soft);
+  border-color: var(--line-strong);
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+.site-nav-link-repo:hover {
+  background: #ede5d8;
+  border-color: var(--accent);
+  color: #4e4032;
+}
+
 main,
 .container {
   max-width: 1040px;
