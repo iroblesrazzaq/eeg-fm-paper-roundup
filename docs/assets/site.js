@@ -37,9 +37,11 @@ const MONTH_CACHE_PREFIX = "eegfm:monthPayload";
 const monthPayloadMem = new Map();
 const monthCacheStats = {
   map_hits: 0,
-  session_hits: 0,
+  local_hits: 0,
   network_hits: 0,
   cache_writes: 0,
+  last_run: null,
+  active_run: null,
 };
 
 function norm(s) {
@@ -125,51 +127,146 @@ function buildMonthCacheKey(month, monthRev) {
   )}`;
 }
 
-function getMonthPayloadFromCache(month, monthRev) {
-  const key = buildMonthCacheKey(month, monthRev);
-  if (monthPayloadMem.has(key)) {
-    monthCacheStats.map_hits += 1;
-    return monthPayloadMem.get(key);
-  }
-
-  if (typeof window === "undefined" || !window.sessionStorage) {
+function monthStorage(storeName) {
+  if (typeof window === "undefined") {
     return null;
   }
-
-  let raw = null;
   try {
-    raw = window.sessionStorage.getItem(key);
+    return storeName === "local" ? window.localStorage : window.sessionStorage;
   } catch (_err) {
     return null;
   }
+}
+
+function startMonthSearchRun(totalMonths) {
+  const summary = {
+    map_hits: 0,
+    local_hits: 0,
+    network_hits: 0,
+    months_total: safeNumber(totalMonths, 0),
+    months_loaded: 0,
+  };
+  monthCacheStats.active_run = summary;
+  monthCacheStats.last_run = { ...summary };
+}
+
+function finalizeMonthSearchRun() {
+  if (!monthCacheStats.active_run) {
+    return;
+  }
+  monthCacheStats.last_run = { ...monthCacheStats.active_run };
+  monthCacheStats.active_run = null;
+}
+
+function incrementMonthMetric(key) {
+  if (!Object.prototype.hasOwnProperty.call(monthCacheStats, key)) {
+    return;
+  }
+  monthCacheStats[key] += 1;
+  if (monthCacheStats.active_run && Object.prototype.hasOwnProperty.call(monthCacheStats.active_run, key)) {
+    monthCacheStats.active_run[key] += 1;
+  }
+}
+
+function noteMonthLoadedForRun() {
+  if (monthCacheStats.active_run) {
+    monthCacheStats.active_run.months_loaded += 1;
+  }
+}
+
+function parseStoredPayload(raw, removeCorrupt) {
   if (raw === null) {
     return null;
   }
-
   try {
-    const payload = JSON.parse(raw);
-    monthPayloadMem.set(key, payload);
-    monthCacheStats.session_hits += 1;
-    return payload;
+    return JSON.parse(raw);
   } catch (_err) {
-    try {
-      window.sessionStorage.removeItem(key);
-    } catch (_removeErr) {
-      // Ignore storage failures and treat as cache miss.
+    if (typeof removeCorrupt === "function") {
+      removeCorrupt();
     }
     return null;
   }
 }
 
+function getMonthPayloadFromCache(month, monthRev) {
+  const key = buildMonthCacheKey(month, monthRev);
+  if (monthPayloadMem.has(key)) {
+    incrementMonthMetric("map_hits");
+    return monthPayloadMem.get(key);
+  }
+
+  const local = monthStorage("local");
+  if (local) {
+    const payload = parseStoredPayload(
+      (() => {
+        try {
+          return local.getItem(key);
+        } catch (_err) {
+          return null;
+        }
+      })(),
+      () => {
+        try {
+          local.removeItem(key);
+        } catch (_removeErr) {
+          // Ignore storage failures and treat as cache miss.
+        }
+      },
+    );
+    if (payload !== null) {
+      monthPayloadMem.set(key, payload);
+      incrementMonthMetric("local_hits");
+      return payload;
+    }
+  }
+
+  const legacySession = monthStorage("session");
+  if (!legacySession) {
+    return null;
+  }
+  const migratedPayload = parseStoredPayload(
+    (() => {
+      try {
+        return legacySession.getItem(key);
+      } catch (_err) {
+        return null;
+      }
+    })(),
+    () => {
+      try {
+        legacySession.removeItem(key);
+      } catch (_removeErr) {
+        // Ignore storage failures and treat as cache miss.
+      }
+    },
+  );
+  if (migratedPayload === null) {
+    return null;
+  }
+
+  monthPayloadMem.set(key, migratedPayload);
+  incrementMonthMetric("local_hits");
+  if (local) {
+    try {
+      local.setItem(key, JSON.stringify(migratedPayload));
+      legacySession.removeItem(key);
+    } catch (_err) {
+      // Ignore storage migration failures.
+    }
+  }
+  return migratedPayload;
+}
+
 function setMonthPayloadCache(month, monthRev, payload) {
   const key = buildMonthCacheKey(month, monthRev);
   monthPayloadMem.set(key, payload);
-  monthCacheStats.cache_writes += 1;
-  if (typeof window === "undefined" || !window.sessionStorage) {
+  incrementMonthMetric("cache_writes");
+  const local = monthStorage("local");
+  if (!local) {
     return;
   }
   try {
-    window.sessionStorage.setItem(key, JSON.stringify(payload));
+    local.setItem(key, JSON.stringify(payload));
   } catch (_err) {
     // Ignore storage failures and continue with memory cache only.
   }
@@ -188,7 +285,7 @@ async function loadMonthPayloadCached({ month, jsonPath, view, monthRev }) {
   }
 
   const raw = await fetchJson(resolvedPath);
-  monthCacheStats.network_hits += 1;
+  incrementMonthMetric("network_hits");
   setMonthPayloadCache(monthKey, monthRev, raw);
   return parseMonthPayload(raw, monthKey);
 }
@@ -197,39 +294,64 @@ function clearMonthMemCache() {
   monthPayloadMem.clear();
 }
 
-function clearMonthSessionCache() {
-  if (typeof window === "undefined" || !window.sessionStorage) {
+function clearMonthStorageByPrefix(storage) {
+  if (!storage) {
     return;
   }
   try {
     const toRemove = [];
-    for (let i = 0; i < window.sessionStorage.length; i += 1) {
-      const key = window.sessionStorage.key(i);
+    for (let i = 0; i < storage.length; i += 1) {
+      const key = storage.key(i);
       if (key && key.startsWith(MONTH_CACHE_PREFIX)) {
         toRemove.push(key);
       }
     }
     for (const key of toRemove) {
-      window.sessionStorage.removeItem(key);
+      storage.removeItem(key);
     }
   } catch (_err) {
     // Ignore storage failures in test helper.
   }
 }
 
+function clearMonthPersistentCache() {
+  clearMonthStorageByPrefix(monthStorage("local"));
+  clearMonthStorageByPrefix(monthStorage("session"));
+}
+
+function clearMonthSessionCache() {
+  clearMonthPersistentCache();
+}
+
 function resetMonthCacheStats() {
   monthCacheStats.map_hits = 0;
-  monthCacheStats.session_hits = 0;
+  monthCacheStats.local_hits = 0;
   monthCacheStats.network_hits = 0;
   monthCacheStats.cache_writes = 0;
+  monthCacheStats.last_run = null;
+  monthCacheStats.active_run = null;
 }
 
 function currentMonthCacheStats() {
-  return {
+  const cumulative = {
     map_hits: monthCacheStats.map_hits,
-    session_hits: monthCacheStats.session_hits,
+    local_hits: monthCacheStats.local_hits,
     network_hits: monthCacheStats.network_hits,
     cache_writes: monthCacheStats.cache_writes,
+  };
+  const lastRun = monthCacheStats.active_run
+    ? { ...monthCacheStats.active_run }
+    : monthCacheStats.last_run
+    ? { ...monthCacheStats.last_run }
+    : null;
+  return {
+    cumulative,
+    last_run: lastRun,
+    map_hits: cumulative.map_hits,
+    local_hits: cumulative.local_hits,
+    session_hits: cumulative.local_hits,
+    network_hits: cumulative.network_hits,
+    cache_writes: cumulative.cache_writes,
   };
 }
 
@@ -420,6 +542,19 @@ function collectTagOptions(papers) {
   return options;
 }
 
+function collectExploreTagOptions(state) {
+  if (state.papers.length > 0) {
+    return collectTagOptions(state.papers);
+  }
+  const options = {};
+  for (const category of TAG_ORDER) {
+    options[category] = Object.keys(TAG_LABELS[category] || {}).sort((a, b) =>
+      tagValueLabel(category, a).localeCompare(tagValueLabel(category, b)),
+    );
+  }
+  return options;
+}
+
 function hasTagFilters(state) {
   return TAG_ORDER.some((category) => state.selectedTags[category].size > 0);
 }
@@ -448,8 +583,6 @@ function matchesTagFilters(paper, state) {
 
 function paperHaystack(paper) {
   const summary = paper.summary || {};
-  const tags = summary.tags && typeof summary.tags === "object" ? summary.tags : {};
-  const tagValues = TAG_ORDER.flatMap((category) => asArray(tags[category]).map((value) => tagValueLabel(category, value)));
   return norm(
     [
       paper.title,
@@ -461,7 +594,6 @@ function paperHaystack(paper) {
       summary.unique_contribution,
       summary.detailed_summary,
       ...asArray(summary.key_points),
-      ...tagValues,
     ].join(" "),
   );
 }
@@ -623,7 +755,13 @@ function renderPaperCard(paper, view, isFeatured) {
 
 function renderTagGroups(state, tagOptions, compact) {
   const groups = TAG_ORDER.map((category) => {
-    const values = tagOptions[category] || [];
+    const mergedValues = new Set(tagOptions[category] || []);
+    for (const value of state.selectedTags[category] || []) {
+      mergedValues.add(value);
+    }
+    const values = [...mergedValues].sort((a, b) =>
+      tagValueLabel(category, a).localeCompare(tagValueLabel(category, b)),
+    );
     if (!values.length) {
       return "";
     }
@@ -687,7 +825,7 @@ function renderExploreControls(app, state) {
   if (!controls) {
     return;
   }
-  const tagOptions = collectTagOptions(state.papers);
+  const tagOptions = collectExploreTagOptions(state);
   const tagGroups = renderTagGroups(state, tagOptions, false);
 
   controls.innerHTML = `
@@ -696,7 +834,7 @@ function renderExploreControls(app, state) {
         <span>Search</span>
         <input id="search-input" data-testid="search-input" type="text" value="${esc(
           state.queryRaw,
-        )}" placeholder="title, author, summary, tags">
+        )}" placeholder="title, author, summary">
       </label>
       <button id="search-run-btn" data-testid="search-run-btn" type="button">Search</button>
       <button id="reset-filters" type="button">Clear search</button>
@@ -799,6 +937,12 @@ function renderResults(app, state) {
     return;
   }
 
+  if (state.view === "explore" && state.loading && state.loading.active) {
+    meta.textContent = "Searching...";
+    results.innerHTML = "<p class='empty-state'>Searching...</p>";
+    return;
+  }
+
   let filtered = state.papers;
   if (state.view === "explore" && state.selectedMonth !== "all") {
     filtered = filtered.filter((paper) => paper.month === state.selectedMonth);
@@ -817,24 +961,17 @@ function renderResults(app, state) {
     }
   }
 
-  const baseCount = monthBaseCount(state);
   if (state.view === "month") {
+    const baseCount = monthBaseCount(state);
     meta.textContent = `Showing ${filtered.length} of ${baseCount} accepted papers for ${monthDisplayLabel(state.month)}.`;
   } else {
-    const scopeLabel = state.selectedMonth === "all" ? "across all months" : `for ${monthDisplayLabel(state.selectedMonth)}`;
-    const loadingMeta =
-      state.loading && state.loading.active
-        ? ` Loading ${state.loading.loaded}/${state.loading.total} month digests...`
-        : "";
-    meta.textContent = `Showing ${filtered.length} of ${baseCount} accepted papers ${scopeLabel}.${loadingMeta}`;
+    meta.textContent = `${filtered.length} results`;
   }
 
   if (!filtered.length) {
     const monthKey = state.view === "month" ? state.month : state.selectedMonth;
     const noFilters = !state.query && !hasTagFilters(state);
-    if (state.view === "explore" && state.loading && state.loading.active && monthKey === "all" && noFilters) {
-      results.innerHTML = "<p class='empty-state'>Loading accepted papers...</p>";
-    } else if (monthKey === "all" && noFilters) {
+    if (monthKey === "all" && noFilters) {
       results.innerHTML = "<p class='empty-state'>No accepted papers are available for the selected month set.</p>";
     } else if (monthKey !== "all" && noFilters) {
       results.innerHTML = `<p class="empty-state">${esc(monthEmptyMessage(monthKey, state.monthStats[monthKey]))}</p>`;
@@ -982,14 +1119,10 @@ async function loadExploreMonthsLazy(app, state, monthRows, view) {
   const concurrency = Math.min(3, Math.max(1, rows.length));
   if (!rows.length) {
     state.loading.active = false;
+    renderExploreControls(app, state);
     renderResults(app, state);
     return;
   }
-
-  let refreshedTagControls = false;
-  const refresh = () => {
-    renderResults(app, state);
-  };
 
   async function worker() {
     while (rows.length) {
@@ -1018,12 +1151,7 @@ async function loadExploreMonthsLazy(app, state, monthRows, view) {
         state.papers.push(...payload.papers);
       }
       state.loading.loaded += 1;
-      if (!refreshedTagControls && state.papers.length > 0) {
-        refreshedTagControls = true;
-        renderExploreControls(app, state);
-      }
-      refresh();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      noteMonthLoadedForRun();
     }
   }
 
@@ -1047,8 +1175,13 @@ async function runExploreSearch(app, state) {
   state.loading.total = state.monthRows.length;
   state.loading.loaded = 0;
   state.loading.failed = 0;
+  startMonthSearchRun(state.monthRows.length);
   renderResults(app, state);
-  await loadExploreMonthsLazy(app, state, state.monthRows, "explore");
+  try {
+    await loadExploreMonthsLazy(app, state, state.monthRows, "explore");
+  } finally {
+    finalizeMonthSearchRun();
+  }
 }
 
 async function setupDigestApp() {
@@ -1154,6 +1287,7 @@ if (typeof window !== "undefined") {
     loadMonthPayloadForTest: (args) => loadMonthPayloadCached(args),
     getCacheStats: () => currentMonthCacheStats(),
     clearMemCacheForTest: () => clearMonthMemCache(),
+    clearPersistentCacheForTest: () => clearMonthPersistentCache(),
     clearSessionCacheForTest: () => clearMonthSessionCache(),
     resetCacheStatsForTest: () => resetMonthCacheStats(),
   };
