@@ -86,6 +86,7 @@ _PERSONAL_WEBSITE_URL = "https://iroblesrazzaq.github.io/"
 _LINKEDIN_URL = "https://www.linkedin.com/in/ismaelroblesrazzaq"
 _EMAIL_ADDRESS = "ismaelroblesrazzaq@gmail.com"
 _ASSET_VERSION = "20260225-1"
+_SITE_TAB_TITLE_BASE = "EEG-FM Digest"
 
 _ICON_SVGS = {
     "github": (
@@ -370,7 +371,7 @@ def render_process_page() -> str:
     summary_prompt = html.escape(_load_prompt_text(Path("prompts/summarize.md")))
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "process")
     return f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>About</title>
+<html><head><meta charset='utf-8'><title>{html.escape(_tab_title("About"))}</title>
 <link rel='stylesheet' href='../assets/style.css?v={_ASSET_VERSION}'></head><body>
 {nav}
 <main class='container process-page'>
@@ -423,6 +424,20 @@ def _month_label(month: str) -> str:
         return month
 
 
+def _month_tab_label(month: str) -> str:
+    try:
+        dt = datetime.strptime(month, "%Y-%m")
+        return dt.strftime("%b %Y")
+    except Exception:
+        return month
+
+
+def _tab_title(suffix: str | None = None) -> str:
+    if not suffix:
+        return _SITE_TAB_TITLE_BASE
+    return f"{_SITE_TAB_TITLE_BASE} | {suffix}"
+
+
 def render_month_page(
     month: str,
     summaries: list[dict[str, Any]],
@@ -434,9 +449,10 @@ def render_month_page(
     month_json = html.escape(f"../../digest/{month}/papers.json")
     manifest_json = html.escape("../../data/months.json")
     month_title = html.escape(_month_label(month))
+    month_tab_title = html.escape(_tab_title(_month_tab_label(month)))
     nav = _nav_html("../../index.html", "../../explore/index.html", "../../process/index.html", "home")
     return f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>EEG-FM Digest {html.escape(month)}</title>
+<html><head><meta charset='utf-8'><title>{month_tab_title}</title>
 <link rel='stylesheet' href='../../assets/style.css?v={_ASSET_VERSION}'></head>
 <body>
   {nav}
@@ -459,7 +475,7 @@ def render_home_page(months: list[str]) -> str:
     fallback_months = html.escape(json.dumps(months, ensure_ascii=False))
     nav = _nav_html("index.html", "explore/index.html", "process/index.html", "home")
     return f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>EEG-FM Digest</title>
+<html><head><meta charset='utf-8'><title>{html.escape(_tab_title())}</title>
 <link rel='stylesheet' href='assets/style.css?v={_ASSET_VERSION}'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='home' data-month='' data-manifest-json='data/months.json' data-fallback-months='{fallback_months}'>
@@ -476,7 +492,7 @@ def render_explore_page(months: list[str]) -> str:
     fallback_months = html.escape(json.dumps(months, ensure_ascii=False))
     nav = _nav_html("../index.html", "../explore/index.html", "../process/index.html", "explore")
     return f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>Search</title>
+<html><head><meta charset='utf-8'><title>{html.escape(_tab_title("Search"))}</title>
 <link rel='stylesheet' href='../assets/style.css?v={_ASSET_VERSION}'></head><body>
 {nav}
 <main id='digest-app' class='container' data-view='explore' data-month='' data-manifest-json='../data/months.json' data-fallback-months='{fallback_months}'>
